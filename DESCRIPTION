@@ -1,6 +1,6 @@
 Package: DEEBeval
 Title: Evaluate DEEB Results
-Version: 0.0.0.9000
+Version: 0.0.0.9001
 Authors@R: 
     person("Christof", "Schötz", , "math@christof-schoetz.de", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0003-3528-4544"))
@@ -9,3 +9,16 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.1
+Imports: 
+    ConfigOpts,
+    DEETrajs,
+    dplyr,
+    ggplot2,
+    graphics,
+    grDevices,
+    gridExtra,
+    rlang,
+    stats,
+    stringr,
+    tibble,
+    tidyr

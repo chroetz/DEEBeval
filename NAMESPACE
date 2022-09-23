@@ -2,3 +2,7 @@
 
 import(ConfigOpts)
 import(DEETrajs)
+import(dplyr)
+import(ggplot2)
+import(tibble)
+importFrom(rlang,.data)
