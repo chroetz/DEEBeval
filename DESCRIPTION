@@ -1,6 +1,6 @@
 Package: DEEBeval
 Title: Evaluate DEEB Results
-Version: 0.0.0.9001
+Version: 0.0.0.9002
 Authors@R: 
     person("Christof", "Schötz", , "math@christof-schoetz.de", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0003-3528-4544"))
@@ -14,10 +14,10 @@ Imports:
     DEETrajs,
     dplyr,
     ggplot2,
-    graphics,
     grDevices,
     gridExtra,
     rlang,
+    rmarkdown,
     stats,
     stringr,
     tibble,
