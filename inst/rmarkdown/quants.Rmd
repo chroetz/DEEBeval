@@ -1,0 +1,60 @@
+---
+title: "EvalQuants"
+author: "Christof Schoetz"
+date: "2022-09-24"
+output: html_document
+params:
+  truthQuantTbl: null
+  quantTbl: null
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+data <- 
+  params$quantTbl |> 
+  left_join(params$truthQuantTbl, by = c("truthNr"))
+nMethods <- data$method |> unique() |> length()
+```
+
+```{r}
+showTable <- function(d, caption) {
+  d |> 
+    select(method, truthNr, value) |>
+    pivot_wider(names_from = method, values_from = value) |> 
+    kableExtra::kbl(
+      digits = 3,
+      caption = caption,
+      booktabs = TRUE,
+      align = c("l", rep("r", nMethods))
+    ) |> 
+    kableExtra::kable_styling(
+      bootstrap_options = c("striped", "condensed"),
+      latex_options = c("striped", "HOLD_position"),
+      full_width = FALSE)
+}
+```
+
+
+
+```{r}
+data |> 
+  mutate(value = L2 / L2ref) |> 
+  showTable("relative L2 error")
+```
+
+
+```{r}
+data |> 
+  mutate(value = timeWarp.time + timeWarp.missingTime) |> 
+  showTable("time error")
+```
+
+```{r}
+data |> 
+  mutate(value = (timeWarp.space + timeWarp.missingSpace) / L2ref) |> 
+  showTable("space error")
+```
+
