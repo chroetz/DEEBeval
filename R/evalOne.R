@@ -1,5 +1,6 @@
 evalOneInfo <- function(info, quantFuns, plotFuns) {
   expandInfoEnv(info)
+  if (is.null(info$truth)) return(list(quants = NULL, plots = NULL))
   quants <- lapply(quantFuns, do.call, args = list(info = info))
   plots <- lapply(plotFuns, do.call, args = list(info = info))
   return(list(quants = quants, plots = plots))

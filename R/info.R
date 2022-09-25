@@ -1,36 +1,42 @@
-expandInfo <- function(db, example, model, truthNr, method = NULL) {
+expandInfo <- function(db, example, model, truthNr, obsNr, method = NULL) {
+
   if (example) {
     truthFile <- sprintf("~/%s/%s/example/truth%04d.csv", db, model, truthNr)
     obsFile <- sprintf("~/%s/%s/example/truth%04dobs0001.csv", db, model, truthNr)
     if (!is.null(method))estiFile <- sprintf("~/%s/%s/example/%s/truth%04dobs0001esti.csv", db, model, method, truthNr)
   } else {
     truthFile <- sprintf("~/%s/%s/truth/truth%04d.csv", db, model, truthNr)
-    obsFile <- sprintf("~/%s/%s/observation/truth%04dobs0001.csv", db, model, truthNr)
-    if (!is.null(method)) estiFile <- sprintf("~/%s/%s/submission/%s/truth%04dobs0001esti.csv", db, model, method, truthNr)
+    obsFile <- sprintf("~/%s/%s/observation/truth%04dobs%04d.csv", db, model, truthNr, obsNr)
+    if (!is.null(method)) estiFile <- sprintf("~/%s/%s/estimation/%s/truth%04dobs0001esti.csv", db, model, method, truthNr)
   }
-  if (!is.null(method))
-  title <- paste(truthNr, method, sep = ", ")
 
-  truth <- readTrajs(truthFile)
-  if (!is.null(method)) esti <- readTrajs(estiFile)
-  obs <- readTrajs(obsFile)
+  title <- NULL
+  if (!is.null(method)) title <- paste(truthNr, method, sep = ", ")
+
+  truth <- NULL
+  obs <- NULL
+  esti <- NULL
+
+  if (file.exists(truthFile)) truth <- readTrajs(truthFile)
+  if (!is.null(method) && file.exists(estiFile)) esti <- readTrajs(estiFile)
+  if (file.exists(obsFile)) obs <- readTrajs(obsFile)
 
   if (!hasTrajId(truth)) {
-    truth <- setTrajId(truth, 0)
-    if (!is.null(method)) esti <- setTrajId(esti, 0)
-    obs <- setTrajId(obs, 0)
+    if (file.exists(truthFile)) truth <- setTrajId(truth, 0)
+    if (!is.null(method) && file.exists(estiFile))  esti <- setTrajId(esti, 0)
+    if (file.exists(obsFile)) obs <- setTrajId(obs, 0)
   }
 
   list(
     truth = truth,
     obs = obs,
-    esti = if (!is.null(method)) esti,
-    title = if (!is.null(method)) title
+    esti = esti,
+    title = title
   )
 }
 
 expandInfoEnv <- function(info) {
-  newInfo <- expandInfo(info$db, info$example, info$model, info$truthNr, info$method)
+  newInfo <- expandInfo(info$db, info$example, info$model, info$truthNr, info$obsNr, info$method)
   addNewToEnv(info, newInfo)
 }
 
