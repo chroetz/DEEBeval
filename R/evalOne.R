@@ -12,6 +12,7 @@ evalOne <- function(db, example, model, truthNr, method = NULL, quantFuns = list
   info$example <- example
   info$model <- model
   info$truthNr <- truthNr
+  info$obsNr <- obsNr
   info$method <- method
   evaluation <- evalOneInfo(info, quantFuns, plotFuns)
   list(evaluation = evaluation, info = info)

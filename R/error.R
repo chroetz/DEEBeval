@@ -25,7 +25,7 @@ getRefTraj <- function(info, p) {
 
 timeWarpError <- function(info, p=2, nBasePoints=1e3) {
 
-  times <- seq(min(info$obs$time), max(info$obs$time), length.out = nBasePoints)
+  times <- seq(min(info$esti$time), max(info$esti$time), length.out = nBasePoints)
   truth <- interpolateTrajs(info$truth, times)
   esti <- interpolateTrajs(info$esti, times)
   appendToEnv(info, list(truthIp = truth, estiIp = esti))
