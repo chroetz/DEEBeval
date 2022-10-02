@@ -28,12 +28,5 @@ timeWarpCosts <- function(info, timeRange, p) {
   if (is.null(info$timeWarp)) calculateTimeWarp(info, timeRange)
   timeDiff <- abs(info$timeWarp$estiIdxes - seq_along(info$timeWarp$estiIdxes))
   timeDiff[is.na(timeDiff)] <- max(timeDiff, na.rm=TRUE)
-  mean(timeDiff)
+  mean(timeDiff / length(info$timeWarp$estiIdxes) * 2)
 }
-
-
-stateWasserstein <- function(info, predictionTime, p) {
-  # TODO
-  return(0)
-}
-

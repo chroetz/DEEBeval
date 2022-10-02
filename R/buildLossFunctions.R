@@ -8,7 +8,9 @@ buildLossFunction <- function(name, predictionTime) {
     L2AfterTimeWarp = \(info) timeWarpLpErr(info, predictionTime, p=2),
     LinfAfterTimeWarp = \(info) timeWarpLpErr(info, predictionTime, p=Inf),
     TimeWarpCosts = \(info) timeWarpCosts(info, predictionTime),
-    stateDistriW2 = \(info) stateWasserstein(info, predictionTime, p=2),
-    timeTillFail  = \(info) 0,
+    stateDistriW2 = ,
+    Wasserstein2 = \(info) wassersteinDistance(info$esti, info$truth, timeRange=predictionTime, p=2),
+    timeTillFail = ,
+    FollowTime = \(info) followTime(info$truth, info$esti, info$obs, predictionTime),
     stop("Unknown loss name ", name))
 }

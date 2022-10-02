@@ -12,7 +12,7 @@ RoxygenNote: 7.2.1
 Imports: 
     ConfigOpts,
     DEEBplots,
-    DEETrajs,
+    DEEBtrajs,
     dplyr,
     ggplot2,
     readr,
