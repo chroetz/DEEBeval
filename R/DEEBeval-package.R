@@ -4,7 +4,7 @@
 #' @import dplyr
 #' @import tibble
 #' @import ConfigOpts
-#' @importFrom rlang .data
+#' @importFrom rlang .data .env
 "_PACKAGE"
 
 ## usethis namespace: start

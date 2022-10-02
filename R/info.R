@@ -1,43 +1,17 @@
-expandInfo <- function(db, example, model, truthNr, obsNr, method = NULL) {
-
-  if (example) {
-    truthFile <- sprintf("~/%s/%s/example/truth%04d.csv", db, model, truthNr)
-    obsFile <- sprintf("~/%s/%s/example/truth%04dobs0001.csv", db, model, truthNr)
-    if (!is.null(method))estiFile <- sprintf("~/%s/%s/example/%s/truth%04dobs0001esti.csv", db, model, method, truthNr)
-  } else {
-    truthFile <- sprintf("~/%s/%s/truth/truth%04d.csv", db, model, truthNr)
-    obsFile <- sprintf("~/%s/%s/observation/truth%04dobs%04d.csv", db, model, truthNr, obsNr)
-    if (!is.null(method)) estiFile <- sprintf("~/%s/%s/estimation/%s/truth%04dobs0001esti.csv", db, model, method, truthNr)
+loadPathsInInfo <- function(info) {
+  selPath <- endsWith(names(info), "Path")
+  for (nm in names(info)[selPath]) {
+    path <- info[[nm]]
+    if (!is.character(path) || !length(path) == 1) next
+    if (is.na(path)) stop("Path in ", nm, " is NA!")
+    nmWoPath <- substr(nm, 1, nchar(nm)-4)
+    if (!is.null(info[[nmWoPath]])) next
+    if (endsWith(path, ".csv")) {
+      info[[nmWoPath]] <- readTrajs(path)
+    } else if (endsWith(path, ".json")) {
+      info[[nmWoPath]] <- readOptsBare(path)
+    }
   }
-
-  title <- NULL
-  if (!is.null(method)) title <- paste(truthNr, method, sep = ", ")
-
-  truth <- NULL
-  obs <- NULL
-  esti <- NULL
-
-  if (file.exists(truthFile)) truth <- readTrajs(truthFile)
-  if (!is.null(method) && file.exists(estiFile)) esti <- readTrajs(estiFile)
-  if (file.exists(obsFile)) obs <- readTrajs(obsFile)
-
-  if (!hasTrajId(truth)) {
-    if (file.exists(truthFile)) truth <- setTrajId(truth, 0)
-    if (!is.null(method) && file.exists(estiFile))  esti <- setTrajId(esti, 0)
-    if (file.exists(obsFile)) obs <- setTrajId(obs, 0)
-  }
-
-  list(
-    truth = truth,
-    obs = obs,
-    esti = esti,
-    title = title
-  )
-}
-
-expandInfoEnv <- function(info) {
-  newInfo <- expandInfo(info$db, info$example, info$model, info$truthNr, info$obsNr, info$method)
-  addNewToEnv(info, newInfo)
 }
 
 addNewToEnv <- function(env, newLst) {

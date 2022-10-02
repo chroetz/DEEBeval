@@ -1,0 +1,57 @@
+---
+title: "DEEB Evaluation -- Plots"
+date: "`r format(Sys.Date())`"
+output: 
+  html_document:
+    toc: yes
+    toc_float: yes
+    toc_depth: 6
+    number_sections: yes
+params:
+  truthPlotsFile: "~/DEEBDB9/lotkaVolterra/Plots_Truth.RDS"
+  estiPlotsFiles: "~/DEEBDB9/lotkaVolterra/Plots_Trivial.RDS"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(tidyverse.quiet = TRUE)
+library(tidyverse)
+```
+
+```{r}
+plots <- 
+  map(params$estiPlotsFiles, readRDS) |> 
+  reduce(bind_rows) |> 
+  pivot_longer(-c(method, ends_with("Nr")), names_to="plot")
+```
+
+# Plots
+
+```{r results='asis', fig.height=30, fig.width=10, fig.show='asis'}
+for (tnr in unique(plots$taskNr)) {
+  cat("## Task", tnr, "\n")
+  taskPlots <- filter(plots, taskNr == tnr)
+  for (onr in unique(taskPlots$obsNr)) {
+    cat("### ObsNr", onr, "\n")
+    obsPlots <- filter(taskPlots, obsNr == onr)
+    for (kind in unique(obsPlots$plot)) {
+      cat("#### Plots", kind, "\n\n")
+      kindPlots <- filter(obsPlots, plot == kind) |> arrange(truthNr, method)
+      # TODO: create layoutMatrix
+      plt <-
+        suppressWarnings( 
+          gridExtra::arrangeGrob(
+            grobs = lapply(kindPlots$value, \(z) if (length(z) == 0) ggplot() else z), 
+            layout_matrix = matrix(
+              seq_len(nrow(kindPlots)), 
+              byrow = TRUE,
+              nrow = kindPlots |> count(method) |> pull(n) |> max(),
+              ncol = length(unique(kindPlots$method)))))
+      plot(plt)
+      cat("\n\n")
+    }
+  }
+}
+```
+
+

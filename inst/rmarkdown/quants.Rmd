@@ -1,26 +1,41 @@
 ---
-title: "EvalQuants"
-author: "Christof Schoetz"
-date: "2022-09-24"
-output: html_document
+title: "DEEB Evaluation -- Losses"
+date: "`r format(Sys.Date())`"
+output: 
+  html_document:
+    toc: yes
+    toc_float: yes
+    toc_depth: 6
+    number_sections: yes
 params:
-  truthQuantTbl: null
-  quantTbl: null
+  truthQuantsFile: "~/DEEBDB9/lotkaVolterra/Eval_Truth.csv"
+  estiQuantsFiles: "~/DEEBDB9/lotkaVolterra/Eval_Trivial.csv"
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+options(tidyverse.quiet = TRUE)
+library(tidyverse)
 ```
 
 ```{r}
-data <- 
-  params$quantTbl |> 
-  left_join(params$truthQuantTbl, by = c("truthNr"))
-nMethods <- data$method |> unique() |> length()
+truth <- 
+  read_csv(params$truthQuantsFile) |> 
+  pivot_longer(-c(method, ends_with("Nr")), names_to="loss", values_to="refValue") |> 
+  mutate(refValue = ifelse(refValue == 0, 1, refValue))
+esti <- 
+  map(params$estiQuantsFile, read_csv) |> 
+  reduce(bind_rows) |> 
+  pivot_longer(-c(method, ends_with("Nr")), names_to="loss")
+data <- left_join(
+  esti, 
+  truth |> select(-method), 
+  by = c("truthNr", "taskNr", "loss"))
 ```
 
 ```{r}
 showTable <- function(d, caption) {
+  nMethods <- length(unique(d$method))
   d |> 
     select(method, truthNr, value) |>
     pivot_wider(names_from = method, values_from = value) |> 
@@ -28,7 +43,7 @@ showTable <- function(d, caption) {
       digits = 3,
       caption = caption,
       booktabs = TRUE,
-      align = c("l", rep("r", nMethods))
+      align = c("l", "l", "l", rep("r", nMethods))
     ) |> 
     kableExtra::kable_styling(
       bootstrap_options = c("striped", "condensed"),
@@ -37,24 +52,25 @@ showTable <- function(d, caption) {
 }
 ```
 
+# Losses
 
-
-```{r}
-data |> 
-  mutate(value = L2 / L2ref) |> 
-  showTable("relative L2 error")
+```{r results='asis'}
+for (tnr in unique(data$taskNr)) {
+  cat("## Task", tnr, "\n")
+  taskData <- filter(data, taskNr == tnr)
+  for (lss in unique(taskData$loss)) {
+    cat("### Loss", lss, "\n")
+    lssData <- filter(taskData, loss == lss)
+    for (onr in unique(lssData$obsNr)) {
+      cat("#### ObsNr", onr, "\n")
+      obsData <- filter(lssData, obsNr == onr)
+      cat(showTable(
+        obsData,
+        paste0("Task ", tnr, ": ", lss, "-Loss (obsNr: ", onr, ")")))
+    }
+  }
+}
 ```
 
 
-```{r}
-data |> 
-  mutate(value = timeWarp.time + timeWarp.missingTime) |> 
-  showTable("time error")
-```
-
-```{r}
-data |> 
-  mutate(value = (timeWarp.space + timeWarp.missingSpace) / L2ref) |> 
-  showTable("space error")
-```
 

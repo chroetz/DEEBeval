@@ -1,20 +1,33 @@
-evalOneInfo <- function(info, quantFuns, plotFuns) {
-  expandInfoEnv(info)
-  if (is.null(info$truth)) return(list(quants = NULL, plots = NULL))
-  quants <- lapply(quantFuns, do.call, args = list(info = info))
-  plots <- lapply(plotFuns, do.call, args = list(info = info))
-  return(list(quants = quants, plots = plots))
-}
+evalOne <- function(infoList, plotFuns = list()) {
 
-evalOne <- function(db, example, model, truthNr, method = NULL, quantFuns = list(), plotFuns = list()) {
+  infoList <- as.list(infoList)
   info <- new.env(parent=emptyenv())
-  info$db <- db
-  info$example <- example
-  info$model <- model
-  info$truthNr <- truthNr
-  info$obsNr <- obsNr
-  info$method <- method
-  evaluation <- evalOneInfo(info, quantFuns, plotFuns)
-  list(evaluation = evaluation, info = info)
+  appendToEnv(info, infoList)
+  loadPathsInInfo(info)
+
+  if (is.null(info$truth)) return(list(quants = NULL, plots = NULL))
+
+  if (is.null(info$esti)) {
+    info$esti <- makeTrajsStateConst(info$truth, mean)
+  }
+
+  info$title <- paste0(info$method, ", Task", info$taskNr, ", Truth", info$truthNr, ", Obs", info$obsNr)
+
+  lossFuns <- lapply(
+    info$task$evaluationLosses,
+    buildLossFunction,
+    predictionTime = info$task$predictionTime)
+  names(lossFuns) <- info$task$evaluationLosses
+
+  quants <- lapply(lossFuns, do.call, args = list(info = info))
+
+  # TODO:
+  if (is.null(info$timeWarp)) {
+    warning("time warp not found, removing plots")
+    plotFuns <- plotFuns[!names(plotFuns) %in% c("timeDependenceWarped", "timeDiff")]
+  }
+  plots <- lapply(plotFuns, do.call, args = list(info = info))
+
+  return(list(quants = quants, plots = plots))
 }
 
