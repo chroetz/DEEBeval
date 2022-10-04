@@ -1,0 +1,7 @@
+{
+    "_class": ["Evaluation", "Opts"],
+    "_description": "",
+    "skillScore": {
+        "_class": ["SkillScore", "Opts"]
+    }
+}

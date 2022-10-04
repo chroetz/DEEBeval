@@ -1,0 +1,7 @@
+{
+    "_class": ["FollowTime", "TimeState", "Score", "Opts"],
+    "_description": "",
+    "name": "FollowTime",
+    "optimalValue": 1
+}
+  

@@ -1,0 +1,10 @@
+{
+    "_class": ["Distance", "VelocityField", "Score", "Opts"],
+    "_description": "",
+    "name": "Distance",
+    "optimalValue": 0,
+    "method": "Euclidean",
+    "_method_description": "A method from R package proxy. See argument `method` of proxy::dist()",
+    "methodArgs": {}
+}
+  

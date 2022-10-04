@@ -1,5 +1,6 @@
 #' @keywords internal
 #' @import DEEBtrajs
+#' @import DEEBpath
 #' @import ggplot2
 #' @import dplyr
 #' @import tibble

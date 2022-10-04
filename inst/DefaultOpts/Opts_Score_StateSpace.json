@@ -1,0 +1,6 @@
+{
+    "_class": ["StateSpace", "Score", "Opts"],
+    "_description": "",
+    "timeSteps": 1000
+}
+  

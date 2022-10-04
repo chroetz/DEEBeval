@@ -1,0 +1,8 @@
+{
+    "_class": ["Wasserstein", "StateSpace", "Score", "Opts"],
+    "_description": "",
+    "name": "Wasserstein",
+    "optimalValue": 0,
+    "p": 2
+}
+  

@@ -1,0 +1,13 @@
+{
+    "_class": ["TimeWarp", "TimeState", "Score", "Opts"],
+    "_description": "",
+    "name": "TimeWarp",
+    "optimalValue": 0,
+    "distMethod": "Euclidean",
+    "_distMethod_description": "dist method for R package proxy",
+    "windowType": "none",
+    "_windowType_description": "'none', 'itakura', 'sakoechiba', 'slantedband'. See dtw::dtw() argument `window.type`",
+    "openEnd": false,
+    "openBegin": false
+}
+  

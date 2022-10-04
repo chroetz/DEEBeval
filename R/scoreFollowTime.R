@@ -1,5 +1,5 @@
-followTime <- function(truth, esti, obs, timeRange, nBasePoints=1e3, windowSize=200, refScale=0.9) {
-  # TODO: multiple trajIds
+# TODO: make score work with new system
+scoreFollowTime <- function(truth, esti, obs, timeRange, nBasePoints=1e3, windowSize=200, refScale=0.9) {
   times <- seq(timeRange[1], timeRange[2], length.out = nBasePoints)
   esti <- interpolateTrajs(esti, times)
   truth <- interpolateTrajs(truth, times)
