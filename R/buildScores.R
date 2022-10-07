@@ -1,12 +1,25 @@
-buildScore <- function(opts, timeRange) {
+buildScore <- function(opts, timeRange, verbose=TRUE) {
+  cat(classString(opts), "\n")
   opts <- asOpts(opts, "Score")
   name <- getClassAt(opts, 2)
-  switch(
+  scoreFun <- switch(
     name,
     StateSpace = buildStateSpaceScore(opts, timeRange),
     TimeState = buildTimeStateScore(opts, timeRange),
+    VelocityField = buildVelocityFieldScore(opts),
     stop("Unknown Score ", name)
   )
+  if (verbose) {
+    verboseScoreFun <- \(info) {
+      cat("start", paste(oldClass(opts), collapse="_"), "... ")
+      pt <- proc.time()
+      res <- scoreFun(info)
+      cat("end after ", (proc.time()-pt)[3], "s\n", sep="")
+      return(res)
+    }
+    return(verboseScoreFun)
+  }
+  return(scoreFun)
 }
 
 
@@ -30,8 +43,18 @@ buildTimeStateScore <- function(opts, timeRange) {
     name,
     Distance = \(info) scoreDistance(info$esti, info$truth, timeRange, opts),
     TimeWarp = \(info) scoreTimeWarp(info$esti, info$truth, timeRange, opts, info),
-    FollowTime = \(info) stop("FollowTime score is not implemented yet"),
+    FollowTime = \(info) {warning("FollowTime score is not implemented yet. Returning 0.");0},
     stop("Unknown TimeStateScore ", name)
+  )
+}
+
+buildVelocityFieldScore <- function(opts) {
+  opts <- asOpts(opts, c("VelocityField", "Score"))
+  name <- getClassAt(opts, 3)
+  switch(
+    name,
+    Distance = \(info) scoreFieldDistance(info$esti, info$truth, opts),
+    stop("Unknown VelocityFieldScore ", name)
   )
 }
 
