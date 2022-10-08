@@ -1,11 +1,11 @@
-buildScore <- function(opts, timeRange, verbose=TRUE) {
+buildScore <- function(opts, verbose=TRUE) {
   cat(classString(opts), "\n")
   opts <- asOpts(opts, "Score")
   name <- getClassAt(opts, 2)
   scoreFun <- switch(
     name,
-    StateSpace = buildStateSpaceScore(opts, timeRange),
-    TimeState = buildTimeStateScore(opts, timeRange),
+    StateSpace = buildStateSpaceScore(opts),
+    TimeState = buildTimeStateScore(opts),
     VelocityField = buildVelocityFieldScore(opts),
     stop("Unknown Score ", name)
   )
@@ -23,27 +23,24 @@ buildScore <- function(opts, timeRange, verbose=TRUE) {
 }
 
 
-buildStateSpaceScore <- function(opts, timeRange) {
+buildStateSpaceScore <- function(opts) {
   opts <- asOpts(opts, c("StateSpace", "Score"))
   name <- getClassAt(opts, 3)
   switch(
     name,
-    Wasserstein = \(info) scoreWasserstein(
-      info$esti, info$truth,
-      timeRange = timeRange,
-      opts),
+    Wasserstein = \(info) scoreWasserstein(info$esti, info$truth, opts),
     stop("Unknown StateSpaceScore ", name)
   )
 }
 
-buildTimeStateScore <- function(opts, timeRange) {
+buildTimeStateScore <- function(opts) {
   opts <- asOpts(opts, c("TimeState", "Score"))
   name <- getClassAt(opts, 3)
   switch(
     name,
-    Distance = \(info) scoreDistance(info$esti, info$truth, timeRange, opts),
-    TimeWarp = \(info) scoreTimeWarp(info$esti, info$truth, timeRange, opts, info),
-    FollowTime = \(info) {warning("FollowTime score is not implemented yet. Returning 0.");0},
+    Distance = \(info) scoreDistance(info$esti, info$truth, opts),
+    TimeWarp = \(info) scoreTimeWarp(info$esti, info$truth, opts, info),
+    FollowTime = \(info) scoreFollowTime(info$esti, info$truth, opts, info),
     stop("Unknown TimeStateScore ", name)
   )
 }

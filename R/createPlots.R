@@ -1,31 +1,6 @@
-evalOne <- function(infoList, plotFuns, verbose=TRUE) {
-
-  infoList <- as.list(infoList)
-  info <- new.env(parent=emptyenv())
-  appendToEnv(info, infoList)
-  loadPathsInInfo(info)
-
-  stopifnot(!is.null(info$truth), !is.null(info$esti))
-
-  info$title <- paste0(info$method, ", Task", info$taskNr, ", Truth", info$truthNr, ", Obs", info$obsNr)
-  if (verbose) cat(info$title, "\n")
-
-  scoreFuns <- lapply(
-    info$task$scoreList$list,
-    buildScore,
-    timeRange = info$task$predictionTime)
-  names(scoreFuns) <- sapply(info$task$scoreList$list, \(x) x$name)
-
-  quants <- lapply(scoreFuns, do.call, args = list(info = info))
-  plots <- createTruthEstiTaskPlots(info)
-
-  return(list(quants = quants, plots = plots))
-}
-
-
 createTruthEstiTaskPlots <- function(info) {
   taskClass <- getClassAt(info$task, 2)
-  switch(
+  plots <- switch(
     taskClass,
     "estiObsTrajs" = {
       list(
@@ -56,4 +31,14 @@ createTruthEstiTaskPlots <- function(info) {
     },
     stop("Unknown task class ", taskClass)
   )
+  if ("timeWarp" %in% names(info)) {
+    plots <- append(plots, list(
+      timeWarp = DEEBplots::plotTimeState(
+      info$timeWarp$truth, esti = info$timeWarp$esti, obs = NULL, title = info$title)))
+  }
+  if ("followTime" %in% names(info)) {
+    plots <- append(plots, list(
+      followTime = DEEBplots::plotFollowTime(info$followTime, title = info$title)))
+  }
+  return(plots)
 }

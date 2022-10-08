@@ -1,5 +1,5 @@
 ---
-title: "DEEB Evaluation -- Losses"
+title: "DEEB Evaluation -- Skill Scores"
 date: "`r format(Sys.Date())`"
 output: 
   html_document:
@@ -9,15 +9,14 @@ output:
     number_sections: no
 params:
   paths: 
-  - "~/DEEBDB9/lorenz63random/Eval_Const_Task01.csv"
-  - "~/DEEBDB9/lotkaVolterra/Eval_Trivial_Task01.csv"
-  - "~/DEEBDB9/lotkaVolterra/Eval_Colloc_Task01.csv"
-  - "~/DEEBDB9/lotkaVolterra/Eval_Altopi_Task01.csv"
-  - "~/DEEBDB9/lotkaVolterra/Eval_Const_Task02.csv"
-  - "~/DEEBDB9/lotkaVolterra/Eval_Trivial_Task02.csv"
-  - "~/DEEBDB9/lotkaVolterra/Eval_Colloc_Task02.csv"
-  - "~/DEEBDB9/lotkaVolterra/Eval_Altopi_Task02.csv"
+  - "~/DEEBDB1/lotkaVolterra/evaluation/Eval_Const_Task01.csv"
+  - "~/DEEBDB1/lotkaVolterra/evaluation/Eval_Trivial_Task01.csv"
+  - "~/DEEBDB1/lotkaVolterra/evaluation/Eval_Truth_Task01.csv"
+  - "~/DEEBDB1/lotkaVolterra/evaluation/Eval_Const_Task02.csv"
+  - "~/DEEBDB1/lotkaVolterra/evaluation/Eval_Trivial_Task02.csv"
+  - "~/DEEBDB1/lotkaVolterra/evaluation/Eval_Truth_Task02.csv"
   reference: "Const"
+  best: "Truth"
 ---
 
 ```{r setup, include=FALSE}
@@ -34,24 +33,29 @@ esti <-
 reference <- 
   esti |> 
   filter(method == .env$params$reference) |> 
-  mutate(refValue = ifelse(value == 0, 1, value), value = NULL)
+  rename(refValue = value) |> 
+  select(-method)
+best <- 
+  esti |> 
+  filter(method == .env$params$best) |> 
+  rename(bestValue = value) |> 
+  select(-method)
 data <- 
-  left_join(
-    esti, 
-    reference |> select(-method), 
-    by = c("truthNr", "obsNr", "taskNr", "loss")
-  ) |> 
-  mutate(value = value / refValue)
+  esti |> 
+  left_join(reference, by = c("truthNr", "obsNr", "taskNr", "loss")) |> 
+  left_join(best, by = c("truthNr", "obsNr", "taskNr", "loss")) |> 
+  mutate(value = (value - refValue) / (bestValue - refValue)) # skill score
 ```
 
 ```{r, include=FALSE}
+nColors <- 256
 bkgndCols <- colorRampPalette(c(
   rgb(0.5,1,0.5),
   rgb(1,1,0.5),
-  rgb(1,0.5,0.5)))(100)
+  rgb(1,0.5,0.5)))(nColors)
 
-lossColor <- function(loss) {
-  i <- 1 + round(loss*100)
+lossColor <- function(score) {
+  i <- 1 + round((1-score)*nColors)
   colors <- bkgndCols[i]
   colors[is.na(colors)] <- rgb(1,0,1)
   colors
@@ -88,7 +92,7 @@ showLossTable <- function(d, caption) {
 ```
 
 
-# Losses {.tabset}
+# Skill Scores {.tabset}
 
 ```{r results='asis'}
 for (tnr in unique(data$taskNr)) {

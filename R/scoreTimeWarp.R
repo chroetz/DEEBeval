@@ -1,8 +1,6 @@
-scoreTimeWarp <- function(trajs1, trajs2, timeRange, opts, info=NULL) {
+scoreTimeWarp <- function(trajs1, trajs2, opts, info=NULL) {
   opts <- asOpts(opts, c("TimeWarp", "TimeState", "Score"))
-  if (length(trajs1$time) != length(trajs2$time) || any(trajs1$time != trajs2$time)) {
-    stop("Times are not equal")
-  }
+  stopifnot(isTimeEqual(trajs1, trajs2))
   if (is.null(info)) info <- new.env(parent = emptyenv())
   calculateTimeWarp(trajs1, trajs2, opts, info)
   return(info$timeWarp$distance)
@@ -27,7 +25,7 @@ warpOneTraj <- function(est, trth, opts) {
   list(
     esti = estiWarped,
     truth = truthWarped,
-    distance = warp$distance)
+    distance = warp$normalizedDistance)
 }
 
 calculateTimeWarp <- function(esti, truth, opts, info) {
