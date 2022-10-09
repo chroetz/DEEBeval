@@ -21,6 +21,8 @@ evalMetaAndWriteToFile <- function(meta, outPath, method) {
       scoresOutFile
     })
 
+  DEEBplots::createShowPlots(outPath)
+
   return(list(
     scores = scoresOutFiles,
     plots = plotsPath))
@@ -57,9 +59,13 @@ evalOne <- function(infoList, verbose=TRUE) {
   plots <- createTruthEstiTaskPlots(info)
   for (nm in names(plots)) {
     plt <- plots[[nm]]
-    fileName <- sprintf(
-      "Truth%04dObs%04dTask%02d%s_%s.png",
-      info$truthNr, info$obsNr, info$taskNr, info$method, nm)
+    fileName <- DEEBpath::parenthesisFileName(
+      truth = info$truthNr,
+      obs = info$obsNr,
+      task = info$taskNr,
+      method = info$method,
+      plot = nm,
+      .ending = "png")
     ggsave(file.path(info$plotsPath, fileName), plt, width = 3, height = 3)
   }
 
