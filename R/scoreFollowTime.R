@@ -10,7 +10,7 @@ scoreFollowTime <- function(follower, target, opts, info) {
 scoreFollowTimeOne <- function(follower, target, opts) {
   n <- nrow(target$state)
   refMean <- applyToTrajStateCols(target, mean)$value
-  refSd <- applyToTrajStateCols(target, var)$value |> sum() |> sqrt()
+  refSd <- applyToTrajStateCols(target, stats::var)$value |> sum() |> sqrt()
   diffStateFollower <- (follower$state - target$state)^2 |> rowSums() |> sqrt()
   diffStateConst <- (rep(refMean, each=n) - target$state)^2 |> rowSums() |> sqrt()
   diffStateFollowerConst <- (rep(refMean, each=n) - follower$state)^2 |> rowSums() |> sqrt()
