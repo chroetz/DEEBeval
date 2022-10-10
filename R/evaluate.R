@@ -16,7 +16,7 @@ evalMetaAndWriteToFile <- function(meta, outPath, method) {
         filter(.data$taskNr == tnr) |>
         tidyr::unnest_wider(.data$scores) |>
         relocate(.data$method, ends_with("Nr"))
-      scoresOutFile <- file.path(outPath, sprintf("Eval_%s_Task%02d.csv", method, tnr))
+      scoresOutFile <- file.path(outPath, DEEBpath::evalDataFile(method = method, taskNr = tnr))
       readr::write_csv(taskscoreTbl, scoresOutFile)
       scoresOutFile
     })
