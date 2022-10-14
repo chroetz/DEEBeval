@@ -3,12 +3,12 @@ scoreFollowTime <- function(follower, target, opts, info) {
   stopifnot(isTimeEqual(follower, target))
   res <- apply2TrajId(follower, target, scoreFollowTimeOne, opts=opts)
   appendToEnv(info, list(followTime = res))
-  total <- sum(sapply(res, \(x) x$time))
+  total <- sum(sapply(res, \(x) x$followTime))
   return(total)
 }
 
 scoreFollowTimeOne <- function(follower, target, opts) {
-  dst <- minDistTimeState(follower$state, target$time, target$time, opts$timeScale)
+  dst <- minDistTimeState(follower$state, target$state, target$time, opts$timeScale)
   iLoose <- which(dst > opts$radius)[1]
   if (is.na(iLoose)) {
     tm <- max(follower$time)
@@ -18,8 +18,11 @@ scoreFollowTimeOne <- function(follower, target, opts) {
     tm <- follower$time[iLoose-1]
   }
   return(list(
-    time = tm,
-    distance = dst
+    followTime = tm,
+    time = target$time,
+    distance = dst,
+    timeScale = opts$timeScale,
+    radius = opts$radius
   ))
 }
 
