@@ -9,12 +9,12 @@ output:
     number_sections: no
 params:
   paths: 
-  - "~/DEEBDB1/lotkaVolterra/evaluation/Eval_Const_Task01.csv"
-  - "~/DEEBDB1/lotkaVolterra/evaluation/Eval_Trivial_Task01.csv"
-  - "~/DEEBDB1/lotkaVolterra/evaluation/Eval_Truth_Task01.csv"
-  - "~/DEEBDB1/lotkaVolterra/evaluation/Eval_Const_Task02.csv"
-  - "~/DEEBDB1/lotkaVolterra/evaluation/Eval_Trivial_Task02.csv"
-  - "~/DEEBDB1/lotkaVolterra/evaluation/Eval_Truth_Task02.csv"
+  - "~/DEEBDB2/lotkaVolterra/evaluation/task01Const_eval.csv"
+  - "~/DEEBDB2/lotkaVolterra/evaluation/task01TrvlPl_eval.csv"
+  - "~/DEEBDB2/lotkaVolterra/evaluation/task01Truth_eval.csv"
+  - "~/DEEBDB2/lotkaVolterra/evaluation/task02Const_eval.csv"
+  - "~/DEEBDB2/lotkaVolterra/evaluation/task02TrvlPl_eval.csv"
+  - "~/DEEBDB2/lotkaVolterra/evaluation/task02Truth_eval.csv"
   reference: "Const"
   best: "Truth"
 ---
@@ -57,7 +57,8 @@ bkgndCols <- colorRampPalette(c(
 lossColor <- function(score) {
   i <- 1 + round((1-score)*nColors)
   colors <- bkgndCols[i]
-  colors[is.na(colors)] <- rgb(1,0,1)
+  colors[score <= 0] <- rgb(1,0.5,1)
+  colors[is.na(colors)] <- rgb(0.6,0.6,0.6)
   colors
 }
 
@@ -70,24 +71,44 @@ colorizeTable <- function(k, colorCols, lossTbl) {
   }
   k
 }
-showLossTable <- function(d, caption) {
+showSkillScoreTable <- function(d, caption) {
   nMethods <- length(unique(d$method))
+  dText <- 
+    d |> 
+    mutate(text = sprintf("%.3f (%d)", value, rank)) 
   dWide <- 
     d |> 
     select(method, truthNr, value) |>
     pivot_wider(names_from = method, values_from = value) 
-  dWide |> 
+  dTextWide <- 
+    dText |> 
+    select(method, truthNr, text) |>
+    pivot_wider(names_from = method, values_from = text) 
+  dTextWide |> 
     kableExtra::kbl(
-      digits = 3,
       caption = caption,
       booktabs = TRUE,
       align = c("l", "l", "l", rep("r", nMethods))
     ) |> 
     kableExtra::kable_styling(
-      bootstrap_options = c("striped", "condensed"),
-      latex_options = c("striped", "HOLD_position"),
+      bootstrap_options = c("condensed"),
+      latex_options = c("HOLD_position"),
       full_width = FALSE) |> 
     colorizeTable(1 + seq_len(ncol(dWide)-1), dWide[,-1])
+}
+
+showRankScoreTable <- function(d, caption) {
+  d |> 
+    kableExtra::kbl(
+      caption = caption,
+      booktabs = TRUE,
+      align = c("l", "r")
+    ) |> 
+    kableExtra::kable_styling(
+      bootstrap_options = c("condensed"),
+      latex_options = c("HOLD_position"),
+      full_width = FALSE) |> 
+    colorizeTable(2, d[,-1])
 }
 ```
 
@@ -99,14 +120,31 @@ for (tnr in unique(data$taskNr)) {
   cat("## Task", tnr, " {.tabset}\n")
   taskData <- filter(data, taskNr == tnr)
   for (lss in unique(taskData$loss)) {
-    cat("### Loss", lss, " {.tabset}\n")
+    cat("### Score", lss, " {.tabset}\n")
     lssData <- filter(taskData, loss == lss)
     for (onr in unique(lssData$obsNr)) {
       cat("#### ObsNr", onr, "\n")
-      obsData <- filter(lssData, obsNr == onr)
-      cat(showLossTable(
+      obsData <- 
+        filter(lssData, obsNr == onr) |> 
+        group_by(truthNr) |> 
+        mutate(value = ifelse(abs(value) <= .Machine$double.eps, 0, value)) |> # make sure that -0 is 0
+        mutate(rank = rank(-pmax(0, value), ties.method = "max", na.last = "keep")) |> 
+        mutate(rankScore = 1 - (rank - min(rank, na.rm=TRUE)) / (max(rank, na.rm=TRUE) - min(rank, na.rm=TRUE))) |> 
+        ungroup()
+      cat(showSkillScoreTable(
         obsData,
-        paste0("Task ", tnr, ": ", lss, "-Loss (obsNr: ", onr, ")")))
+        paste0("Task ", tnr, ", obsNr ", onr, ": ", lss, "-SkillScores (rank)")))
+      
+      rankScoreData <- 
+        obsData |> 
+        group_by(method) |> 
+        summarize(rankScore = mean(rankScore, na.rm = TRUE)) |> 
+        arrange(desc(rankScore))
+      
+      cat("\n")
+      cat(showRankScoreTable(
+        rankScoreData,
+        paste0("Task ", tnr, ", obsNr ", onr, ": ", lss, " rank score")))
     }
   }
 }

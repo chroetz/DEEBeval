@@ -7,7 +7,7 @@ scoreFollowTime <- function(follower, target, opts, info) {
   return(total)
 }
 
-scoreFollowTimeOne <- function(follower, target, opts) {
+scoreFollowTimeOne <- function(follower, target, opts) { # TODO: redo
   n <- nrow(target$state)
   refMean <- applyToTrajStateCols(target, mean)$value
   refSd <- applyToTrajStateCols(target, stats::var)$value |> sum() |> sqrt()
