@@ -140,7 +140,7 @@ for (tnr in unique(data$taskNr)) {
       rankScoreData <- 
         obsData |> 
         group_by(method) |> 
-        summarize(rankScore = mean(rankScore, na.rm = TRUE)) |> 
+        summarize(rankScore = median(rankScore, na.rm = TRUE)) |> 
         arrange(desc(rankScore))
       
       meanScoreData <- 
