@@ -3,41 +3,23 @@ scoreFollowTime <- function(follower, target, opts, info) {
   stopifnot(isTimeEqual(follower, target))
   res <- apply2TrajId(follower, target, scoreFollowTimeOne, opts=opts)
   appendToEnv(info, list(followTime = res))
-  total <- sum(sapply(res, \(x) x$followTime))
+  total <- sum(sapply(res, \(x) x$time))
   return(total)
 }
 
-scoreFollowTimeOne <- function(follower, target, opts) { # TODO: redo
-  n <- nrow(target$state)
-  refMean <- applyToTrajStateCols(target, mean)$value
-  refSd <- applyToTrajStateCols(target, stats::var)$value |> sum() |> sqrt()
-  diffStateFollower <- (follower$state - target$state)^2 |> rowSums() |> sqrt()
-  diffStateConst <- (rep(refMean, each=n) - target$state)^2 |> rowSums() |> sqrt()
-  diffStateFollowerConst <- (rep(refMean, each=n) - follower$state)^2 |> rowSums() |> sqrt()
-  betterThanFractionConst <- diffStateFollower <= opts$constFraction*diffStateConst
-  bothCloseToConst <-
-    diffStateConst <= opts$sdFraction*refSd &
-    diffStateFollowerConst <= opts$sdFraction*refSd
-  good <- betterThanFractionConst | bothCloseToConst
-  z <- 0
-  cumStepsLost <- double(n)
-  for (i in seq_along(good)) {
-    if (good[i] && z > 0) z <- z-1
-    if (!good[i]) z <- z+1
-    cumStepsLost[i] <- z
+scoreFollowTimeOne <- function(follower, target, opts) {
+  dst <- minDistTimeState(follower$state, target$time, target$time, opts$timeScale)
+  iLoose <- which(dst > opts$radius)[1]
+  if (is.na(iLoose)) {
+    tm <- max(follower$time)
+  } else if (iLoose == 1) {
+    tm <- min(follower$time)
+  } else {
+    tm <- follower$time[iLoose-1]
   }
-  cumTimeLost <- cumStepsLost * getTimeStepTrajs(target)
-  followTime <- target$time[which(cumTimeLost > opts$lostTimeThreshold)[1]]
-  if (is.na(followTime)) followTime <- target$time |> max()
   return(list(
-    followTime = followTime,
-    diffConst = diffStateConst,
-    diffFollower = diffStateFollower,
-    time = target$time,
-    cumTimeLost = cumTimeLost,
-    closeToConstThreshold = opts$sdFraction*refSd,
-    constFraction = opts$constFraction,
-    lostTimeThreshold = opts$lostTimeThreshold
+    time = tm,
+    distance = dst
   ))
 }
 

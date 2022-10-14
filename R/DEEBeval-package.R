@@ -9,5 +9,7 @@
 "_PACKAGE"
 
 ## usethis namespace: start
+#' @importFrom Rcpp sourceCpp
+#' @useDynLib DEEBeval, .registration = TRUE
 ## usethis namespace: end
 NULL

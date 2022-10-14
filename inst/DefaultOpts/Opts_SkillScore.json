@@ -1,6 +1,6 @@
 {
     "_class": ["SkillScore", "Opts"],
     "_description": "",
-    "referenceMethod": "",
-    "referenceValue": 0
+    "referenceMethod": "Const",
+    "bestMethod": "Truth"
 }
