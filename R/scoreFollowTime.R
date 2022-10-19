@@ -8,20 +8,20 @@ scoreFollowTime <- function(follower, target, opts, info) {
 }
 
 scoreFollowTimeOne <- function(follower, target, opts) {
-  dst <- minDistTimeState(follower$state, target$state, target$time, opts$timeScale)
-  iLoose <- which(dst > opts$radius)[1]
-  if (is.na(iLoose)) {
-    tm <- max(follower$time)
-  } else if (iLoose == 1) {
-    tm <- min(follower$time)
+  normalization <- calculateNormalization(target)
+  targetNormed <- normalization$normalize(target)
+  followerNormed <- normalization$normalize(follower)
+  dst <- minDistTimeState(followerNormed$state, targetNormed$state, target$time, opts$timeScale)
+  iLoss <- which(dst > opts$radius)[1]
+  if (is.na(iLoss)) {
+    tm <- max(target$time)
   } else {
-    tm <- follower$time[iLoose-1]
+    tm <- target$time[iLoss]
   }
   return(list(
     followTime = tm,
     time = target$time,
     distance = dst,
-    timeScale = opts$timeScale,
     radius = opts$radius
   ))
 }

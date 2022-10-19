@@ -5,3 +5,7 @@ minDistTimeState <- function(query, target, time, scale) {
     .Call(`_DEEBeval_minDistTimeState`, query, target, time, scale)
 }
 
+minDist <- function(query, target) {
+    .Call(`_DEEBeval_minDist`, query, target)
+}
+

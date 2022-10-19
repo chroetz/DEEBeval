@@ -24,9 +24,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// minDist
+NumericVector minDist(NumericMatrix query, NumericMatrix target);
+RcppExport SEXP _DEEBeval_minDist(SEXP querySEXP, SEXP targetSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type query(querySEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type target(targetSEXP);
+    rcpp_result_gen = Rcpp::wrap(minDist(query, target));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_DEEBeval_minDistTimeState", (DL_FUNC) &_DEEBeval_minDistTimeState, 4},
+    {"_DEEBeval_minDist", (DL_FUNC) &_DEEBeval_minDist, 2},
     {NULL, NULL, 0}
 };
 

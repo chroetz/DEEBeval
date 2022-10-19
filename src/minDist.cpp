@@ -53,3 +53,29 @@ NumericVector minDistTimeState(NumericMatrix query, NumericMatrix target, Numeri
   }
   return out;
 }
+
+
+// [[Rcpp::export]]
+NumericVector minDist(NumericMatrix query, NumericMatrix target) {
+  int n = query.nrow(), d = query.ncol();
+  NumericVector out(n);
+  double v, dst;
+
+  // iterate through query
+  for (int i = 0; i < n; ++i) {
+    // start search for minimization at target index s = query index i
+    double minDist = INFINITY;
+    for (int s = 0; s < n; ++s) {
+      dst = 0;
+      for (int k = 0; k < d; ++k) {
+        v = query(i, k) - target(s, k);
+        dst += v*v;
+      }
+      if (dst < minDist) {
+        minDist = dst;
+      }
+    }
+    out[i] = sqrt(minDist/d);
+  }
+  return out;
+}
