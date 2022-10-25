@@ -1,6 +1,7 @@
 scoreFollowTime <- function(follower, target, opts, info) {
   opts <- asOpts(opts, c("FollowTime", "TimeState", "Score"))
   stopifnot(isTimeEqual(follower, target))
+  if (any(is.na(follower$state)) || any(is.na(target$state))) return(NA)
   res <- apply2TrajId(follower, target, scoreFollowTimeOne, opts=opts)
   appendToEnv(info, list(followTime = res))
   total <- sum(sapply(res, \(x) x$followTime))

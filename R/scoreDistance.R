@@ -1,6 +1,7 @@
 scoreDistance <- function(trajs1, trajs2, opts) {
   opts <- asOpts(opts, c("Distance", "TimeState", "Score"))
   stopifnot(isTimeEqual(trajs1, trajs2))
+  if (any(is.na(trajs1$state)) || any(is.na(trajs2$state))) return(NA)
   dists <- do.call(
     proxy::dist,
     c(

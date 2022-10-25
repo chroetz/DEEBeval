@@ -1,5 +1,5 @@
 buildScore <- function(opts, verbose=TRUE) {
-  cat(classString(opts), "\n")
+  if (verbose) cat(classString(opts), "\n")
   opts <- asOpts(opts, "Score")
   name <- getClassAt(opts, 2)
   scoreFun <- switch(

@@ -1,6 +1,7 @@
 scoreTimeWarp <- function(trajs1, trajs2, opts, info=NULL) {
   opts <- asOpts(opts, c("TimeWarp", "TimeState", "Score"))
   stopifnot(isTimeEqual(trajs1, trajs2))
+  if (any(is.na(trajs1$state)) || any(is.na(trajs2$state))) return(NA)
   if (is.null(info)) info <- new.env(parent = emptyenv())
   calculateTimeWarp(trajs1, trajs2, opts, info)
   return(info$timeWarp$distance)

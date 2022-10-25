@@ -55,7 +55,7 @@ bkgndCols <- colorRampPalette(c(
   rgb(1,0.5,0.5)))(nColors)
 
 lossColor <- function(score) {
-  i <- 1 + round((1-score)*nColors)
+  i <- 1 + floor((1-score)*nColors)
   colors <- bkgndCols[i]
   colors[score <= 0] <- rgb(1,0.5,1)
   colors[is.na(colors)] <- rgb(0.6,0.6,0.6)

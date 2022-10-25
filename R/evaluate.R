@@ -1,8 +1,13 @@
-evalMetaAndWriteToFile <- function(meta, outPath, method) {
+evalMetaAndWriteToFile <- function(meta, outPath, method, verbose=TRUE) {
 
   plotsPath <- file.path(outPath, "plots")
+  if (!dir.exists(plotsPath)) dir.create(plotsPath, recursive=TRUE)
   dir.create(plotsPath, showWarnings=FALSE)
-  tbl <- evalTbl(meta, infoList = list(method = method, plotsPath = plotsPath))
+
+  tbl <- evalTbl(
+    meta,
+    infoList = list(method = method, plotsPath = plotsPath),
+    verbose = verbose)
 
   scoreTbl <-
     tbl |>
@@ -29,11 +34,11 @@ evalMetaAndWriteToFile <- function(meta, outPath, method) {
 }
 
 
-evalTbl <- function(meta, infoList = list()) {
+evalTbl <- function(meta, infoList = list(), verbose=TRUE) {
 
   meta$scores <- lapply(
     seq_len(nrow(meta)),
-    \(i) evalOne(c(meta[i,], infoList)))
+    \(i) evalOne(c(meta[i,], infoList), verbose))
 
   return(meta)
 }
@@ -51,7 +56,7 @@ evalOne <- function(infoList, verbose=TRUE) {
   info$title <- paste0(info$method, ", Task", info$taskNr, ", Truth", info$truthNr, ", Obs", info$obsNr)
   if (verbose) cat(info$title, "\n")
 
-  scoreFuns <- lapply(info$task$scoreList$list, buildScore)
+  scoreFuns <- lapply(info$task$scoreList$list, buildScore, verbose=verbose)
   names(scoreFuns) <- sapply(info$task$scoreList$list, \(x) x$name)
 
   scores <- lapply(scoreFuns, do.call, args = list(info = info))
