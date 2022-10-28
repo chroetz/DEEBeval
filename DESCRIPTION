@@ -11,7 +11,6 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.1
 Imports: 
     ConfigOpts,
-    DEEBdata,
     DEEBpath,
     DEEBplots,
     DEEBtrajs,
@@ -23,7 +22,6 @@ Imports:
     readr,
     rlang,
     rmarkdown,
-    stats,
     tibble,
     tidyr,
     transport
