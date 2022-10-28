@@ -20,6 +20,7 @@ scoreDistance <- function(trajs1, trajs2, opts) {
 
 scoreFieldDistance <- function(trajs1, trajs2, opts) {
   opts <- asOpts(opts, c("Distance", "VelocityField", "Score"))
+  stopifnot(max(abs(trajs1$state - trajs2$state)) < sqrt(.Machine$double.eps))
   dists <- do.call(
     proxy::dist,
     c(
