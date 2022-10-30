@@ -1,5 +1,5 @@
 ---
-title: "DEEB Evaluation -- Skill Scores"
+title: "DEEB Evaluation"
 date: "`r format(Sys.Date())`"
 output: 
   html_document:
@@ -44,7 +44,7 @@ data <-
   esti |> 
   left_join(reference, by = c("truthNr", "obsNr", "taskNr", "loss")) |> 
   left_join(best, by = c("truthNr", "obsNr", "taskNr", "loss")) |> 
-  mutate(value = (value - refValue) / (bestValue - refValue)) # skill score
+  mutate(skillScore = (value - refValue) / (bestValue - refValue)) # skill score
 ```
 
 ```{r, include=FALSE}
@@ -98,24 +98,51 @@ showSkillScoreTable <- function(d, caption, digits=3) {
     colorizeTable(1 + seq_len(ncol(dWide)-1), dWide[,-1])
 }
 
-showRankScoreTable <- function(d, caption, digits=3) {
+showStatsTable <- function(d, caption, digits=3) {
   if (nrow(d) == 0) return(paste0(caption, ": no data"))
-  dText <- d
-  dText[[2]] <- sprintf(paste0("%.",digits,"f"), dText[[2]])
+  dStats <- 
+    d |> 
+    group_by(method) |> 
+    summarize(
+      mean = mean(value, na.rm = TRUE),
+      min = min(value, na.rm = TRUE),
+      q25 = quantile(value, probs = 0.25, na.rm = TRUE),
+      median = median(value, na.rm = TRUE),
+      q75 = quantile(value, probs = 0.75, na.rm = TRUE),
+      max = max(value, na.rm = TRUE),
+      "NA" = sum(is.na(value))
+    ) |> 
+    arrange(desc(mean))
+  numberCols <- ncol(dStats) - 2 # not first and not last (NA)
+  dText <- dStats
+  for (i in 1+seq_len(numberCols)) {
+    dText[[i]] <- sprintf(paste0("%.",digits,"f"), dText[[i]])
+  }
   dText |> 
     kableExtra::kbl(
       caption = caption,
       booktabs = TRUE,
-      align = c("l", "r")
+      align = c("l", rep("r", numberCols))
     ) |> 
     kableExtra::kable_styling(
       bootstrap_options = c("condensed"),
       latex_options = c("HOLD_position"),
       full_width = FALSE) |> 
-    colorizeTable(2, d[,-1])
+    colorizeTable(1+seq_len(numberCols), dStats[,-1])
 }
 ```
 
+
+```{r results='asis'}
+pth <- normalizePath(params$paths[1], winslash="/")
+fldrs <- str_split(path, "/")[[1]]
+i <- which(fldrs == "evaluation")
+if (length(i) == 1) {
+  cat("\n\n**")
+  cat(fldrs[seq_len(i-1)], sep="/")
+  cat("**\n\n")
+}
+```
 
 # Skill Scores {.tabset}
 
@@ -130,6 +157,7 @@ for (tnr in unique(data$taskNr)) {
       cat("#### ObsNr", onr, "\n\n")
       obsData <- 
         filter(lssData, obsNr == onr) |> 
+        mutate(value = skillScore) |> # show skill scores only; not absolute values
         group_by(truthNr) |> 
         filter(!all(is.na(value))) |> 
         mutate(value = ifelse(abs(value) <= .Machine$double.eps, 0, value)) |> # make sure that -0 is 0
@@ -142,23 +170,19 @@ for (tnr in unique(data$taskNr)) {
       
       rankScoreData <- 
         obsData |> 
-        group_by(method) |> 
-        summarize(rankScore = median(rankScore, na.rm = TRUE)) |> 
-        arrange(desc(rankScore))
+        mutate(value = rankScore)
       
       meanScoreData <- 
         obsData |> 
-        group_by(method) |> 
-        summarize(score = mean(ifelse(value < 0, 0, value), na.rm = TRUE)) |> 
-        arrange(desc(score))
+        mutate(value = ifelse(value < 0, 0, value))
       
       cat("\n\n")
-      cat(showRankScoreTable(
+      cat(showStatsTable(
         meanScoreData,
         paste0("Task ", tnr, ", obsNr ", onr, ": ", lss, " - Trimmed Mean Score")))
       
       cat("\n\n")
-      cat(showRankScoreTable(
+      cat(showStatsTable(
         rankScoreData,
         paste0("Task ", tnr, ", obsNr ", onr, ": ", lss, " - Rank Score")))
       
