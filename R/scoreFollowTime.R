@@ -19,6 +19,7 @@ scoreFollowTimeOne <- function(follower, target, opts) {
   } else {
     tm <- target$time[iLoss]
   }
+  tm <- tm - target$time[1]
   return(list(
     followTime = tm,
     time = target$time,

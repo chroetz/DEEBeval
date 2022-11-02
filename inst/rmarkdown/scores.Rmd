@@ -71,14 +71,15 @@ colorizeTable <- function(k, colorCols, lossTbl) {
   }
   k
 }
-showSkillScoreTable <- function(d, caption, digits=3) {
+showSkillScoreTable <- function(d, caption, digits=3, format = "f") {
   if (nrow(d) == 0) return(paste0(caption, ": no data"))
   nMethods <- length(unique(d$method))
   dText <- 
     d |> 
-    mutate(text = sprintf(paste0("%.",digits,"f (%d)"), value, rank)) 
-  dWide <- 
+    mutate(text = sprintf(paste0("%.",digits, format," (%d)"), value, rank)) 
+  dWideSkill <- 
     d |> 
+    mutate(value = ifelse(skillScore < 0, 0, skillScore)) |> 
     select(method, truthNr, value) |>
     pivot_wider(names_from = method, values_from = value) 
   dTextWide <- 
@@ -95,10 +96,10 @@ showSkillScoreTable <- function(d, caption, digits=3) {
       bootstrap_options = c("condensed"),
       latex_options = c("HOLD_position"),
       full_width = FALSE) |> 
-    colorizeTable(1 + seq_len(ncol(dWide)-1), dWide[,-1])
+    colorizeTable(1 + seq_len(ncol(dWideSkill)-1), dWideSkill[,-1])
 }
 
-showStatsTable <- function(d, caption, digits=3) {
+showStatsTable <- function(d, caption, digits=3, format = "f", colorize="zeroOne") {
   if (nrow(d) == 0) return(paste0(caption, ": no data"))
   dStats <- 
     d |> 
@@ -116,9 +117,10 @@ showStatsTable <- function(d, caption, digits=3) {
   numberCols <- ncol(dStats) - 2 # not first and not last (NA)
   dText <- dStats
   for (i in 1+seq_len(numberCols)) {
-    dText[[i]] <- sprintf(paste0("%.",digits,"f"), dText[[i]])
+    dText[[i]] <- sprintf(paste0("%.",digits, format), dText[[i]])
   }
-  dText |> 
+  tbl <- 
+    dText |> 
     kableExtra::kbl(
       caption = caption,
       booktabs = TRUE,
@@ -127,8 +129,13 @@ showStatsTable <- function(d, caption, digits=3) {
     kableExtra::kable_styling(
       bootstrap_options = c("condensed"),
       latex_options = c("HOLD_position"),
-      full_width = FALSE) |> 
-    colorizeTable(1+seq_len(numberCols), dStats[,-1])
+      full_width = FALSE) 
+  tbl <- switch(
+    colorize,
+    none = tbl,
+    zeroOne = colorizeTable(tbl, 1+seq_len(numberCols), dStats[,-1]),
+    stop("unknown colorize value"))
+  return(tbl)
 }
 ```
 
@@ -141,6 +148,16 @@ if (length(i) == 1) {
   cat("\n\n**")
   cat(fldrs[seq_len(i-1)], sep="/")
   cat("**\n\n")
+}
+```
+
+[Plots](./showPlots.html)
+
+```{r results='asis'}
+if ("example" %in% fldrs) {
+  cat("[Navi](../../../navi.html)\n")
+} else {
+  cat("[Navi](../../navi.html)\n")
 }
 ```
 
@@ -186,6 +203,41 @@ for (tnr in unique(data$taskNr)) {
         rankScoreData,
         paste0("Task ", tnr, ", obsNr ", onr, ": ", lss, " - Rank Score")))
       
+      cat("\n\n")
+    }
+  }
+}
+```
+
+
+# Absolute Scores {.tabset}
+
+```{r results='asis'}
+for (tnr in unique(data$taskNr)) {
+  cat("## Task", tnr, " {.tabset}\n")
+  taskData <- filter(data, taskNr == tnr)
+  for (lss in unique(taskData$loss)) {
+    cat("### Score", lss, " {.tabset}\n")
+    lssData <- filter(taskData, loss == lss)
+    for (onr in unique(lssData$obsNr)) {
+      cat("#### ObsNr", onr, "\n\n")
+      obsData <- 
+        filter(lssData, obsNr == onr) |> 
+        group_by(truthNr) |> 
+        filter(!all(is.na(value))) |> 
+        mutate(rank = rank(value, ties.method = "max", na.last = "keep")) |> 
+        ungroup()
+      cat(showSkillScoreTable(
+        obsData,
+        paste0("Task ", tnr, ", obsNr ", onr, ": ", lss, " - Scores (Rank)"), 
+        format = "g"))
+      
+      cat("\n\n")
+      cat(showStatsTable(
+        obsData,
+        paste0("Task ", tnr, ", obsNr ", onr, ": ", lss, " - Mean Score"),
+        colorize = "none", format = "g"))
+       
       cat("\n\n")
     }
   }
