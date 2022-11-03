@@ -24,6 +24,7 @@ knitr::opts_chunk$set(echo = FALSE)
 library(purrr)
 library(readr)
 library(dplyr)
+library(tidyr)
 ```
 
 ```{r, include=FALSE}
