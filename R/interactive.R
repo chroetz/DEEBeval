@@ -13,6 +13,7 @@ interact <- function() {
 }
 
 askUserWhatToEval <- function(dbPath = ".") {
+  # TODO: scan only if users asks
   dbPath <- normalizePath(dbPath, winslash="/", mustWork=TRUE)
   cat("Scaning for new estimation files...\n")
   analysis <- analyseDb(dbPath)
