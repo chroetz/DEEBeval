@@ -32,14 +32,16 @@ evalMetaAndWriteToFile <- function(
         relocate(.data$method, ends_with("Nr"))
       scoresOutFile <- file.path(outPath, DEEBpath::evalDataFile(method = method, taskNr = tnr))
       if (file.exists(scoresOutFile)) {
-        oldScores <- readr::read_csv(scoresOutFile, col_types = cols())
-        retainedScores <- dplyr::semi_join(
+        oldScores <- readr::read_csv(scoresOutFile, col_types = readr::cols())
+        retainedScores <- dplyr::anti_join(
           oldScores,
           taskScoreTbl,
           by = c("method", "truthNr", "obsNr", "taskNr"))
         taskScoreTbl <- bind_rows(
           taskScoreTbl,
-          retainedScores)
+          retainedScores) |>
+          dplyr::arrange(
+            .data$method, .data$truthNr, .data$obsNr, .data$taskNr)
       }
       readr::write_csv(taskScoreTbl, scoresOutFile)
       scoresOutFile
