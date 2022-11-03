@@ -1,6 +1,12 @@
 #' @export
 interact <- function() {
-  # call Rscript -e 'DEEBeval::interact()'
+  # module load R/4.2.0/gcc-mkl
+  # module load compiler/gnu/10.2.0
+  # R
+  # > dir
+  # > .libPaths("~/R/x86_64-pc-linux-gnu-library/4.2")
+  # > .libPaths("~/R/x86_64-pc-linux-gnu-library/4.2")
+  # Rscript -e 'DEEBeval::interact()'
   dbPath <- getwd()
   askUserWhatToEval(dbPath)
 }
@@ -84,9 +90,9 @@ askUserWhatToEval <- function(dbPath = ".") {
 }
 
 startComp <- function(cmdStr) {
-  jobName <- "DEEBeval"
-  cat("Starting ", jobName, "\n")
   if (isSlurmAvailable()) {
+    jobName <- "DEEBeval"
+    cat("Starting SLURM job", jobName, "\n")
     clcom <- paste0(
       "sbatch ",
       " --qos=short",
@@ -94,7 +100,7 @@ startComp <- function(cmdStr) {
       " --output=", jobName, "-%j.out",
       " --error=", jobName, "-%j.err",
       " --mail-type=END",
-      " --wrap=\"Rscript -e '", cmdStr, "'")
+      " --wrap=\"Rscript -e '", gsub("\"", "\\\\\"", cmdStr), "'\"")
     cat(clcom, "\n")
     system(clcom)
   } else {
