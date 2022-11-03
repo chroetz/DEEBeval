@@ -21,8 +21,9 @@ params:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
-options(tidyverse.quiet = TRUE)
-library(tidyverse)
+library(purrr)
+library(readr)
+library(dplyr)
 ```
 
 ```{r, include=FALSE}
