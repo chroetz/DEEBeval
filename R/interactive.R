@@ -1,13 +1,5 @@
 #' @export
 interact <- function() {
-  # module load R/4.2.0/gcc-mkl
-  # module load compiler/gnu/10.2.0
-  # module load pandoc/2.14.2
-  # R
-  # > dir
-  # > .libPaths("~/R/x86_64-pc-linux-gnu-library/4.2")
-  # > .libPaths("~/R/x86_64-pc-linux-gnu-library/4.2")
-  # Rscript -e 'DEEBeval::interact()'
   dbPath <- getwd()
   askUserWhatToEval(dbPath)
 }

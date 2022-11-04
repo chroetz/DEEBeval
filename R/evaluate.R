@@ -33,15 +33,7 @@ evalMetaAndWriteToFile <- function(
       scoresOutFile <- file.path(outPath, DEEBpath::evalDataFile(method = method, taskNr = tnr))
       if (file.exists(scoresOutFile)) {
         oldScores <- readr::read_csv(scoresOutFile, col_types = readr::cols())
-        retainedScores <- dplyr::anti_join(
-          oldScores,
-          taskScoreTbl,
-          by = c("method", "truthNr", "obsNr", "taskNr"))
-        taskScoreTbl <- bind_rows(
-          taskScoreTbl,
-          retainedScores) |>
-          dplyr::arrange(
-            .data$method, .data$truthNr, .data$obsNr, .data$taskNr)
+        taskScoreTbl <- updateScores(oldScores, taskScoreTbl)
       }
       readr::write_csv(taskScoreTbl, scoresOutFile)
       scoresOutFile
@@ -52,6 +44,19 @@ evalMetaAndWriteToFile <- function(
   return(list(
     scores = scoresOutFiles,
     plots = plotsPath))
+}
+
+
+updateScores <- function(old, new) {
+  key <- c("method", "truthNr", "obsNr", "taskNr")
+  retainRows <- dplyr::anti_join(old, new, by = key)
+  res <- dplyr::bind_rows(new, retainRows)
+  retainColNames <- setdiff(names(old), names(res))
+  if (length(retainColNames) > 0) {
+    retainCols <- old[c(key, retainColNames)]
+    res <- dplyr::left_join(res, retainCols, by = key)
+  }
+  dplyr::arrange(res, .data$method, .data$truthNr, .data$obsNr, .data$taskNr)
 }
 
 
