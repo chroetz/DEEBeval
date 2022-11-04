@@ -1,6 +1,7 @@
 #' @export
 interact <- function(dbPath = NULL) {
   if (is.null(dbPath)) dbPath <- getwd()
+  # TODO check that you are in a DEEB DB folder
   askUserWhatToEval(dbPath)
 }
 
@@ -12,17 +13,18 @@ askUserWhatToEval <- function(dbPath = ".") {
     "Choose what to do",
     c("scan" = "scan for new estimation files",
       "choose" = "choose what to (re-)evaluate"))
+  # TODO: question is unclear
   example <- getUserInputYesNo("In the example folders?", default = "No")
 
   if (choice == "scan") {
     cat("Scaning for new estimation files...\n")
     newEsti <- getNew(dbPath, example)
     newEsti$example <- example
-    if (nrow(analysis$newEsti) == 0) {
+    if (nrow(newEsti) == 0) {
       cat("No new estimation files detected.\n")
     } else {
-      cat("Found", nrow(analysis$newEsti), "new estimation files. The first three are:\n")
-      print(tbl[1:min(3,nrow(analysis$newEsti)),])
+      cat("Found", nrow(newEsti), "new estimation files. The first three are:\n")
+      print(tbl[1:min(3,nrow(newEsti)),])
     }
     choice <- getUserInput(
       "Choose what to do",

@@ -4,7 +4,7 @@ scoreFollowTime <- function(follower, target, opts, info) {
   if (any(is.na(follower$state)) || any(is.na(target$state))) return(NA)
   res <- apply2TrajId(follower, target, scoreFollowTimeOne, opts=opts)
   appendToEnv(info, list(followTime = res))
-  total <- sum(sapply(res, \(x) x$followTime))
+  total <- sum(sapply(res, \(x) x$score))
   return(total)
 }
 
@@ -19,9 +19,9 @@ scoreFollowTimeOne <- function(follower, target, opts) {
   } else {
     tm <- target$time[iLoss]
   }
-  tm <- tm - target$time[1]
   return(list(
     followTime = tm,
+    score = tm - target$time[1],
     time = target$time,
     distance = dst,
     radius = opts$radius
