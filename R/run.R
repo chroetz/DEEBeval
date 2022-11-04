@@ -24,6 +24,7 @@ runEval <- function(
 
     for (method in methods) {
       cat(method)
+      browser()
       ptMethod <- proc.time()
       methodEstiPath <- file.path(path$esti, method)
       if (!dir.exists(methodEstiPath)) next
@@ -56,20 +57,6 @@ runEval <- function(
 }
 
 #' @export
-runEvalNew <- function(
-    dbPath,
-    scoreFilter = NULL,
-    createPlots = TRUE,
-    verbose = FALSE
-) {
-  runEvalTbl(
-    dbPath,
-    analyseDb(dbPath)$newEsti,
-    scoreFilter = scoreFilter,
-    createPlots = createPlots,
-    verbose = verbose)
-}
-
 runEvalTbl <- function(
     dbPath,
     tbl, # use getUnevaled() to get a suitable tibble with columns c("truthNr", "obsNr", "taskNr", "method", "model", "example")
