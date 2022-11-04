@@ -24,7 +24,6 @@ runEval <- function(
 
     for (method in methods) {
       cat(method)
-      browser()
       ptMethod <- proc.time()
       methodEstiPath <- file.path(path$esti, method)
       if (!dir.exists(methodEstiPath)) next

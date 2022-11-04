@@ -1,7 +1,14 @@
 #' @export
 interact <- function(dbPath = NULL) {
   if (is.null(dbPath)) dbPath <- getwd()
-  # TODO check that you are in a DEEB DB folder
+  dbPath <- normalizePath(dbPath)
+  if (!DEEBpath::isDeebDb(dbPath)) {
+    stop(
+      dbPath,
+      " is not a DEEB database.",
+      " Call `interact()` with a DEEB database as working directory",
+      " or `interact('path/to/DEEBdatabase')`.")
+  }
   askUserWhatToEval(dbPath)
 }
 
@@ -13,12 +20,15 @@ askUserWhatToEval <- function(dbPath = ".") {
     "Choose what to do",
     c("scan" = "scan for new estimation files",
       "choose" = "choose what to (re-)evaluate"))
-  # TODO: question is unclear
-  example <- getUserInputYesNo("In the example folders?", default = "No")
+  example <-
+    "example" == getUserInput(
+      "Which level?",
+      c("main", "example"),
+      default = "main")
 
   if (choice == "scan") {
     cat("Scaning for new estimation files...\n")
-    newEsti <- getNew(dbPath, example)
+    newEsti <- DEEBpath::getNew(dbPath, example)
     newEsti$example <- example
     if (nrow(newEsti) == 0) {
       cat("No new estimation files detected.\n")
@@ -38,7 +48,7 @@ askUserWhatToEval <- function(dbPath = ".") {
         startComp(rlang::expr_text(rlang::expr(
           DEEBeval::runEvalTbl(
             !!dbPath,
-            DEEBeval::getNew(!!dbPath, !!example)))))
+            DEEBpath::getNew(!!dbPath, !!example)))))
         return(invisible(NULL))
       },
       choose = # continue
@@ -47,7 +57,7 @@ askUserWhatToEval <- function(dbPath = ".") {
 
   # choice == "choose"
   cat("Scaning for possible choices...\n")
-  analysis <- getUniqueDbEntries(dbPath, example)
+  analysis <- DEEBpath::getUniqueDbEntries(dbPath, example)
   models <- getUserInput(
     "Choose model(s)",
     analysis$models,
