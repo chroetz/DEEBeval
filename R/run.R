@@ -23,7 +23,7 @@ runEval <- function(
     if (!is.null(methodsFilter)) methods <- intersect(methods, methodsFilter)
 
     for (method in methods) {
-      cat(method)
+      cat(method, "\n")
       ptMethod <- proc.time()
       methodEstiPath <- file.path(path$esti, method)
       if (!dir.exists(methodEstiPath)) next
