@@ -39,10 +39,15 @@ runEval <- function(
       evalMetaAndWriteToFile(
         meta,
         path$eval,
+        path$plots,
         method,
         createPlots = createPlots,
         scoreFilter = scoreFilter,
         verbose = verbose)
+
+      if (createPlots)
+        createExtraPlots(path, method, obsNrFilter, truthNrFilter)
+
       cat(" took ", format((proc.time()-ptMethod)[3]), "s\n", sep="")
     }
 
@@ -53,6 +58,36 @@ runEval <- function(
 
     message(model, " took ", format((proc.time()-pt)[3]), "s")
   }
+}
+
+createExtraPlots <- function(path, method, obsNrFilter = NULL, truthNrFilter = NULL) {
+  methodEstiPath <- file.path(path$esti, method)
+  smoothMeta <-
+    DEEBpath::getMetaGeneric(
+      c(path$truth, path$obs, methodEstiPath),
+      tagsFilter = c("esti", "truth", "obs", "smooth"),
+      nrFilters = list(
+        obsNr = obsNrFilter,
+        truthNr = truthNrFilter
+      ),
+      removeNa = TRUE)
+  for (i in seq_len(nrow(smoothMeta))) {
+    info <- smoothMeta[i,]
+    smooth <- readTrajs(info$smoothPath)
+    truth <- readTrajs(info$truthPath)
+    obs <- readTrajs(info$obsPath)
+    plt <- DEEBplots::plotTimeState(
+      truth, smooth, obs,
+      title = paste0(method, ", Truth", info$truthNr, ", Obs", info$obsNr))
+    fileName <- DEEBpath::parenthesisFileName(
+      truth = info$truthNr,
+      obs = info$obsNr,
+      method = method,
+      plot = "smooth",
+      .ending = "png")
+    ggsave(file.path(path$plots, fileName), plt, width = 3, height = 3)
+  }
+  DEEBplots::createShowPlots(path$eval)
 }
 
 #' @export
@@ -96,10 +131,12 @@ runEvalTbl <- function(
         evalMetaAndWriteToFile(
           meta,
           path$eval,
+          path$plots,
           method,
           createPlots = createPlots,
           scoreFilter = scoreFilter,
           verbose = verbose)
+        if (createPlots) createExtraPlots(path, method)
         cat(" took ", format((proc.time()-ptMethod)[3]), "s\n", sep="")
       }
 

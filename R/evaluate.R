@@ -1,15 +1,17 @@
 evalMetaAndWriteToFile <- function(
     meta,
     outPath,
+    plotsPath,
     method,
     createPlots = TRUE,
     scoreFilter = NULL,
-    verbose=TRUE
+    verbose = TRUE
 ) {
 
-  plotsPath <- file.path(outPath, "plots")
-  if (!dir.exists(plotsPath)) dir.create(plotsPath, recursive=TRUE)
-  dir.create(plotsPath, showWarnings=FALSE)
+  if (createPlots) {
+    if (!dir.exists(plotsPath)) dir.create(plotsPath, recursive=TRUE)
+    dir.create(plotsPath, showWarnings=FALSE)
+  }
 
   tbl <- evalTbl(
     meta,
