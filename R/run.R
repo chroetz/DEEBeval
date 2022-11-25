@@ -85,7 +85,7 @@ createExtraPlots <- function(path, method, obsNrFilter = NULL, truthNrFilter = N
       method = method,
       plot = "smooth",
       .ending = "png")
-    ggsave(file.path(path$plots, fileName), plt, width = 3, height = 3)
+    DEEBplots::writePlot(plt, file.path(path$plots, fileName))
   }
   DEEBplots::createShowPlots(path$eval)
 }

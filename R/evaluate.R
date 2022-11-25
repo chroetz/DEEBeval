@@ -123,7 +123,7 @@ evalOne <- function(
         method = info$method,
         plot = nm,
         .ending = "png")
-      ggsave(file.path(info$plotsPath, fileName), plt, width = 3, height = 3)
+      DEEBplots::writePlot(plt, file.path(info$plotsPath, fileName))
     }
   }
 

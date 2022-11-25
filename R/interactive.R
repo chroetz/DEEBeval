@@ -34,7 +34,7 @@ askUserWhatToEval <- function(dbPath = ".") {
       cat("No new estimation files detected.\n")
     } else {
       cat("Found", nrow(newEsti), "new estimation files. The first three are:\n")
-      print(tbl[1:min(3,nrow(newEsti)),])
+      print(newEsti[1:min(3,nrow(newEsti)),])
     }
     choice <- getUserInput(
       "Choose what to do",

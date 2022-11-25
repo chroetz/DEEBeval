@@ -1,10 +1,8 @@
 #' @keywords internal
+#' @import ConfigOpts
 #' @import DEEBtrajs
 #' @import DEEBpath
-#' @import ggplot2
-#' @import dplyr
-#' @import tibble
-#' @import ConfigOpts
+#' @importFrom dplyr filter select mutate ends_with relocate
 #' @importFrom rlang .data .env
 "_PACKAGE"
 
