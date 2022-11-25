@@ -5,17 +5,17 @@ createTruthEstiTaskPlots <- function(info) {
     "estiObsTrajs" = {
       list(
         stateSpace = DEEBplots::plotStateSpace(
-          info$truth, esti = info$esti, obs = NULL, title = info$title),
+          truth = info$truth, esti = info$esti, obs = info$obs, title = info$title),
         timeState = DEEBplots::plotTimeState(
-          info$truth, esti = info$esti, obs = NULL, title = info$title)
+          truth = info$truth, esti = info$esti, obs = info$obs, title = info$title)
       )
     },
     "newTrajs" = {
       list(
         stateSpace = DEEBplots::plotStateSpace(
-          info$truth, esti = info$esti, obs = NULL, title = info$title),
+          truth = info$truth, esti = info$esti, title = info$title),
         timeState = DEEBplots::plotTimeState(
-          info$truth, esti = info$esti, obs = NULL, title = info$title)
+          truth = info$truth, esti = info$esti, title = info$title)
       )
     },
     "velocity" = {
@@ -34,7 +34,7 @@ createTruthEstiTaskPlots <- function(info) {
   if ("timeWarp" %in% names(info)) {
     plots <- append(plots, list(
       timeWarp = DEEBplots::plotTimeState(
-      info$timeWarp$truth, esti = info$timeWarp$esti, obs = NULL, title = info$title)))
+      truth = info$timeWarp$truth, esti = info$timeWarp$esti, title = info$title)))
   }
   if ("followTime" %in% names(info)) {
     plots <- append(plots, list(
