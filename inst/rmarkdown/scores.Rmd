@@ -25,13 +25,12 @@ library(dplyr)
 library(purrr)
 library(readr)
 library(stringr)
-library(tidyr)
 ```
 
 ```{r, include=FALSE}
 esti <-
   params$paths |> 
-  map(~ read_csv(.) |> pivot_longer(-c(method, ends_with("Nr")), names_to="loss")) |> 
+  map(~ read_csv(.) |> tidyr::pivot_longer(-c(method, ends_with("Nr")), names_to="loss")) |> 
   reduce(bind_rows)
 reference <- 
   esti |> 
@@ -85,11 +84,11 @@ showSkillScoreTable <- function(d, caption, digits=3, format = "f") {
     d |> 
     mutate(value = ifelse(skillScore < 0, 0, skillScore)) |> 
     select(method, truthNr, value) |>
-    pivot_wider(names_from = method, values_from = value) 
+    tidyr::pivot_wider(names_from = method, values_from = value) 
   dTextWide <- 
     dText |> 
     select(method, truthNr, text) |>
-    pivot_wider(names_from = method, values_from = text) 
+    tidyr::pivot_wider(names_from = method, values_from = text) 
   dTextWide |> 
     kableExtra::kbl(
       caption = caption,
@@ -183,6 +182,47 @@ if ("example" %in% fldrs) {
 
 # Skill Scores {.tabset}
 
+```{r}
+showObsSkillScoreTables <- function(obsData, title, showAll) {
+  obsData <- 
+    obsData |> 
+    mutate(value = skillScore) |> # show skill scores only; not absolute values
+    group_by(truthNr, obsNr, taskNr) |> 
+    filter(!all(is.na(value))) |> 
+    mutate(value = ifelse(abs(value) <= .Machine$double.eps, 0, value)) |> # make sure that -0 is 0
+    mutate(rank = rank(-pmax(0, value), ties.method = "max", na.last = "keep")) |> 
+    mutate(rankScore = 1 - (rank - min(rank, na.rm=TRUE)) / (max(rank, na.rm=TRUE) - min(rank, na.rm=TRUE))) |> 
+    ungroup()
+  
+  rankScoreData <- 
+    obsData |> 
+    mutate(value = rankScore)
+  
+  meanScoreData <- 
+    obsData |> 
+    mutate(value = ifelse(value < 0, 0, value))
+  
+  cat("\n\n")
+  cat(showStatsTable(
+    meanScoreData,
+    paste0(title, " - Trimmed Score Statistics")))
+  
+  cat("\n\n")
+  cat(showStatsTable(
+    rankScoreData,
+    paste0(title, " - Rank Score Statistics")))
+  
+  if (showAll) {
+    cat("\n\n")
+    cat(showSkillScoreTable(
+      obsData,
+      paste0(title, " - Skill Scores (Rank)")))
+  }
+  
+  cat("\n\n")
+}
+```
+
 ```{r results='asis'}
 for (tnr in unique(data$taskNr)) {
   cat("## Task", tnr, " {.tabset}\n")
@@ -190,42 +230,18 @@ for (tnr in unique(data$taskNr)) {
   for (lss in unique(taskData$loss)) {
     cat("### Score", lss, " {.tabset}\n")
     lssData <- filter(taskData, loss == lss)
+    cat("#### ObsNr all\n\n")
+    showObsSkillScoreTables(
+      lssData, 
+      paste0("Task ", tnr, ", all obs: ", lss),
+      showAll = FALSE)
     for (onr in unique(lssData$obsNr)) {
       cat("#### ObsNr", onr, "\n\n")
-      obsData <- 
-        filter(lssData, obsNr == onr) |> 
-        mutate(value = skillScore) |> # show skill scores only; not absolute values
-        group_by(truthNr) |> 
-        filter(!all(is.na(value))) |> 
-        mutate(value = ifelse(abs(value) <= .Machine$double.eps, 0, value)) |> # make sure that -0 is 0
-        mutate(rank = rank(-pmax(0, value), ties.method = "max", na.last = "keep")) |> 
-        mutate(rankScore = 1 - (rank - min(rank, na.rm=TRUE)) / (max(rank, na.rm=TRUE) - min(rank, na.rm=TRUE))) |> 
-        ungroup()
-      
-      rankScoreData <- 
-        obsData |> 
-        mutate(value = rankScore)
-      
-      meanScoreData <- 
-        obsData |> 
-        mutate(value = ifelse(value < 0, 0, value))
-      
-      cat("\n\n")
-      cat(showStatsTable(
-        meanScoreData,
-        paste0("Task ", tnr, ", obsNr ", onr, ": ", lss, " - Trimmed Score Statistics")))
-      
-      cat("\n\n")
-      cat(showStatsTable(
-        rankScoreData,
-        paste0("Task ", tnr, ", obsNr ", onr, ": ", lss, " - Rank Score Statistics")))
-      
-      cat("\n\n")
-      cat(showSkillScoreTable(
-        obsData,
-        paste0("Task ", tnr, ", obsNr ", onr, ": ", lss, " - Skill Scores (Rank)")))
-      
-      cat("\n\n")
+      obsData <- filter(lssData, obsNr == onr)
+      showObsSkillScoreTables(
+        obsData, 
+        paste0("Task ", tnr, ", obsNr ", onr, ": ", lss),
+        showAll = TRUE)
     }
   }
 }
@@ -234,6 +250,34 @@ for (tnr in unique(data$taskNr)) {
 
 # Absolute Scores {.tabset}
 
+
+```{r}
+showObsAbsScoreTables <- function(obsData, title, showAll) {
+  obsData <- 
+    obsData |> 
+    group_by(truthNr, obsNr, taskNr) |> 
+    filter(!all(is.na(value))) |> 
+    mutate(rank = rank(value, ties.method = "max", na.last = "keep")) |> 
+    ungroup()
+  
+  cat("\n\n")
+  cat(showStatsTable(
+    obsData,
+    paste0(title, " - Score Statistics"),
+    colorize = "none", format = "g"))
+   
+  if (showAll) {
+    cat("\n\n")
+    cat(showSkillScoreTable(
+      obsData,
+      paste0(title, " - Scores (Rank)"), 
+      format = "g"))
+  }
+  
+  cat("\n\n")
+}
+```
+
 ```{r results='asis'}
 for (tnr in unique(data$taskNr)) {
   cat("## Task", tnr, " {.tabset}\n")
@@ -241,28 +285,18 @@ for (tnr in unique(data$taskNr)) {
   for (lss in unique(taskData$loss)) {
     cat("### Score", lss, " {.tabset}\n")
     lssData <- filter(taskData, loss == lss)
+    cat("#### ObsNr all\n\n")
+    showObsAbsScoreTables(
+      lssData, 
+      paste0("Task ", tnr, ", all obs: ", lss),
+      showAll = FALSE)
     for (onr in unique(lssData$obsNr)) {
       cat("#### ObsNr", onr, "\n\n")
-      obsData <- 
-        filter(lssData, obsNr == onr) |> 
-        group_by(truthNr) |> 
-        filter(!all(is.na(value))) |> 
-        mutate(rank = rank(value, ties.method = "max", na.last = "keep")) |> 
-        ungroup()
-      
-      cat("\n\n")
-      cat(showStatsTable(
-        obsData,
-        paste0("Task ", tnr, ", obsNr ", onr, ": ", lss, " - Score Statistics"),
-        colorize = "none", format = "g"))
-       
-      cat("\n\n")
-      cat(showSkillScoreTable(
-        obsData,
-        paste0("Task ", tnr, ", obsNr ", onr, ": ", lss, " - Scores (Rank)"), 
-        format = "g"))
-      
-      cat("\n\n")
+      obsData <- filter(lssData, obsNr == onr)
+      showObsAbsScoreTables(
+        obsData, 
+        paste0("Task ", tnr, ", obsNr ", onr, ": ", lss),
+        showAll = TRUE)
     }
   }
 }

@@ -19,7 +19,6 @@ Imports:
     dplyr,
     dtw,
     ggplot2,
-    jsonlite,
     proxy,
     Rcpp,
     readr,
