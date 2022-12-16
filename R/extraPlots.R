@@ -10,7 +10,7 @@ createExtraPlots <- function(path, method, obsNrFilter = NULL, truthNrFilter = N
         truthNr = truthNrFilter
       ),
       removeNa = TRUE)
-  if (is.null(smoothMeta$smoothPath)) return(NULL)
+  if (!"smoothPath" %in% colnames(smoothMeta)) return(NULL)
 
   for (i in seq_len(nrow(smoothMeta))) {
 
