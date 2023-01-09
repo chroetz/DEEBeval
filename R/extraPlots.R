@@ -41,6 +41,17 @@ createExtraPlots <- function(path, method, obsNrFilter = NULL, truthNrFilter = N
       plot = "smoothStateSpace",
       .ending = "png")
     DEEBplots::writePlot(plt, file.path(path$plots, fileName))
+
+    plt <- DEEBplots::plotDistances(
+      truth = truth, esti = esti, smooth = smooth, obs = obs,
+      title = paste0(method, ", Truth", info$truthNr, ", Obs", info$obsNr))
+    fileName <- DEEBpath::parenthesisFileName(
+      truth = info$truthNr,
+      obs = info$obsNr,
+      method = method,
+      plot = "L2-distance",
+      .ending = "png")
+    DEEBplots::writePlot(plt, file.path(path$plots, fileName))
   }
 
   DEEBplots::createShowPlots(path$eval)
