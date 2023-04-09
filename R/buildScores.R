@@ -41,6 +41,7 @@ buildTimeStateScore <- function(opts) {
     Distance = \(info) scoreDistance(info$esti, info$truth, opts),
     TimeWarp = \(info) scoreTimeWarp(info$esti, info$truth, opts, info),
     FollowTime = \(info) scoreFollowTime(info$esti, info$truth, opts, info),
+    ValidTime = \(info) scoreValidTime(info$esti, info$truth, opts, info),
     stop("Unknown TimeStateScore ", name)
   )
 }
