@@ -118,6 +118,9 @@ showStatsTable <- function(d, caption, digits=3, format = "f", colorize="zeroOne
   if (nrow(d) == 0) return(paste0(caption, ": no data"))
   dStats <- 
     d |> 
+    mutate(
+      isNa = is.na(value), # count NA as zero
+      value = ifelse(is.na(value), 0, value)) |> 
     group_by(method) |> 
     summarize(
       mean = mean(value, na.rm = TRUE),
@@ -129,8 +132,8 @@ showStatsTable <- function(d, caption, digits=3, format = "f", colorize="zeroOne
       median = median(value, na.rm = TRUE),
       q75 = quantile(value, probs = 0.75, na.rm = TRUE),
       max = max(value, na.rm = TRUE),
-      n = sum(!is.na(value)),
-      "NA" = sum(is.na(value))
+      n = n(),
+      "NA" = sum(isNa)
     ) |> 
     arrange(desc(mean))
   numberCols <- ncol(dStats) - 3 # not first and not last 2 (n, NA)

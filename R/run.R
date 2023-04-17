@@ -1,15 +1,17 @@
 #' @export
 runEval <- function(
-    dbPath = ".",
-    models = list.dirs(path = dbPath, full.names = FALSE, recursive = FALSE),
-    example = FALSE,
-    methodsFilter = NULL,
-    obsNrFilter = NULL,
-    truthNrFilter = NULL,
-    taskNrFilter = NULL,
-    scoreFilter = NULL,
-    createPlots = TRUE,
-    verbose = FALSE
+  dbPath = ".",
+  models = list.dirs(path = dbPath, full.names = FALSE, recursive = FALSE),
+  example = FALSE,
+  methodsFilter = NULL,
+  obsNrFilter = NULL,
+  truthNrFilter = NULL,
+  taskNrFilter = NULL,
+  scoreFilter = NULL,
+  createPlots = TRUE,
+  verbose = FALSE,
+  onlyNew = FALSE,
+  writeScoreHtml = TRUE
 ) {
 
   for (model in models) {
@@ -51,10 +53,20 @@ runEval <- function(
       cat(" took ", format((proc.time()-ptMethod)[3]), "s\n", sep="")
     }
 
-    writeDoc(
-      path$eval,
-      "scores",
-      paths = DEEBpath::getScoreFiles(path$eval))
+    scoreFiles <- DEEBpath::getScoreFiles(path$eval)
+    if (onlyNew) {
+      # TODO: use DEEBpath
+      fileNames <- basename(scoreFiles)
+      sel <- substring(fileNames, 7, nchar(fileNames)-9) %in% c(methods, "Const", "Truth")
+      scoreFiles <- scoreFiles[sel]
+    }
+
+    if (writeScoreHtml) {
+      writeDoc(
+        path$eval,
+        "scores",
+        paths = scoreFiles)
+    }
 
     message(model, " took ", format((proc.time()-pt)[3]), "s")
   }
