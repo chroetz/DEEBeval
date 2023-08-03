@@ -66,11 +66,11 @@ lossColor <- function(score) {
 }
 
 colorizeTable <- function(k, colorCols, lossTbl) {
-  for (i in seq_along(colorCols)) {
+  for (colId in colorCols) {
     k <- kableExtra::column_spec(
       k, 
-      colorCols[i],
-      background = lossColor(lossTbl[[colorCols[i]]]))
+      colId,
+      background = lossColor(lossTbl[[colId]]))
   }
   k
 }
