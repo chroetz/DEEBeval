@@ -93,7 +93,7 @@ showSkillScoreTable <- function(d, caption, digits=3, format = "f") {
     kableExtra::kbl(
       caption = caption,
       booktabs = TRUE,
-      align = c("l", "l", "l", rep("r", nMethods))
+      align = c("l", rep("r", nMethods))
     ) |> 
     kableExtra::kable_styling(
       bootstrap_options = c("condensed"),
