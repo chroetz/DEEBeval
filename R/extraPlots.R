@@ -5,6 +5,7 @@ createExtraPlots <- function(path, method, obsNrFilter = NULL, truthNrFilter = N
     DEEBpath::getMetaGeneric(
       c(path$truth, path$obs, methodEstiPath),
       tagsFilter = c("esti", "truth", "obs", "smooth"),
+      # TODO: tagFileFilter = ...?
       nrFilters = list(
         obsNr = obsNrFilter,
         truthNr = truthNrFilter
@@ -63,6 +64,10 @@ searchObsEsti <- function(path, method, info) {
     DEEBpath::getMetaGeneric(
       c(path$truth, path$obs, file.path(path$esti, method), path$task),
       tagsFilter = c("esti", "truth", "obs", "smooth", "task"),
+      tagFileFilter = list(
+            c("truth", "obs", "task", "esti"),
+            c("task", "truth"),
+            "task"),
       nrFilters = list(
         obsNr = info$obsNr,
         truthNr = info$truthNr

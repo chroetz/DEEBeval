@@ -8,6 +8,8 @@ evalMetaAndWriteToFile <- function(
     verbose = TRUE
 ) {
 
+  if (!dir.exists(outPath)) dir.create(outPath, recursive=TRUE)
+
   if (createPlots) {
     if (!dir.exists(plotsPath)) dir.create(plotsPath, recursive=TRUE)
     dir.create(plotsPath, showWarnings=FALSE)
@@ -41,7 +43,9 @@ evalMetaAndWriteToFile <- function(
       scoresOutFile
     })
 
-  DEEBplots::createShowPlots(outPath)
+  if (createPlots) {
+    DEEBplots::createShowPlots(outPath)
+  }
 
   return(list(
     scores = scoresOutFiles,

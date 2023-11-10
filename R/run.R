@@ -37,6 +37,10 @@ runEval <- function(
             truthNr = truthNrFilter,
             taskNr = taskNrFilter
           ),
+          tagFileFilter = list(
+            c("truth", "obs", "task", "esti"),
+            c("task", "truth"),
+            "task"),
           removeNa = TRUE)
       evalMetaAndWriteToFile(
         meta,
@@ -101,6 +105,10 @@ runEvalTbl <- function(
         meta <-
           DEEBpath::getMetaGeneric(
             c(path$truth, path$obs, methodEstiPath, path$task),
+            tagFileFilter = list(
+              c("truth", "obs", "task", "esti"),
+              c("task", "truth"),
+              "task"),
             removeNa = TRUE)
         meta <-
           meta |>
