@@ -67,7 +67,9 @@ runEval <- function(
       if (onlyNew) {
         # TODO: use DEEBpath
         fileNames <- basename(scoreFiles)
-        sel <- substring(fileNames, 7, nchar(fileNames)-9) %in% c(methods, "Const", "Truth")
+        sel <-
+          substring(fileNames, 7, nchar(fileNames)-9) %in%
+          c(methods, "ConstMean", "ConstLast", "Const", "Truth")
         scoreFiles <- scoreFiles[sel]
       }
 
@@ -75,7 +77,9 @@ runEval <- function(
         writeDoc(
           path$eval,
           "scores",
-          paths = scoreFiles)
+          paths = scoreFiles,
+          reference = "ConstMean",
+          best = "Truth")
       }
     }
 
@@ -137,7 +141,9 @@ runEvalTbl <- function(
     writeDoc(
       path$eval,
       "scores",
-      paths = DEEBpath::getScoreFiles(path$eval))
+      paths = DEEBpath::getScoreFiles(path$eval),
+      reference = "ConstMean",
+      best = "Truth")
 
     message(model, " took ", format((proc.time()-pt)[3]), "s")
   }
