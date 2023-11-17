@@ -20,7 +20,7 @@ params:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = FALSE, error = TRUE)
 library(dplyr)
 library(purrr)
 library(readr)
@@ -176,11 +176,7 @@ if (length(i) == 1) {
 [Plots](./showPlots.html)
 
 ```{r results='asis'}
-if ("example" %in% fldrs) {
-  cat("[Navi](../../../navi.html)\n")
-} else {
-  cat("[Navi](../../navi.html)\n")
-}
+cat("[Navi](../../navi.html)\n")
 ```
 
 # Skill Scores {.tabset}
