@@ -41,6 +41,10 @@ runEval <- function(
             c("task", "truth"),
             "task"),
           removeNa = TRUE)
+      if (!"estiPath" %in% colnames(meta)) {
+        cat("No estimation file found.\n")
+        next
+      }
       evalMetaAndWriteToFile(
         meta,
         path$eval,
@@ -57,18 +61,22 @@ runEval <- function(
     }
 
     scoreFiles <- DEEBpath::getScoreFiles(path$eval)
-    if (onlyNew) {
-      # TODO: use DEEBpath
-      fileNames <- basename(scoreFiles)
-      sel <- substring(fileNames, 7, nchar(fileNames)-9) %in% c(methods, "Const", "Truth")
-      scoreFiles <- scoreFiles[sel]
-    }
+    if (length(scoreFiles) == 0) {
+      cat("No score files. Do not create scores html.\n")
+    } else {
+      if (onlyNew) {
+        # TODO: use DEEBpath
+        fileNames <- basename(scoreFiles)
+        sel <- substring(fileNames, 7, nchar(fileNames)-9) %in% c(methods, "Const", "Truth")
+        scoreFiles <- scoreFiles[sel]
+      }
 
-    if (writeScoreHtml) {
-      writeDoc(
-        path$eval,
-        "scores",
-        paths = scoreFiles)
+      if (writeScoreHtml) {
+        writeDoc(
+          path$eval,
+          "scores",
+          paths = scoreFiles)
+      }
     }
 
     message(model, " took ", format((proc.time()-pt)[3]), "s")
