@@ -1,0 +1,131 @@
+---
+title: "DEEB Evaluation Score Summary"
+date: "`r format(Sys.Date())`"
+output: 
+  html_document:
+    toc: no
+    toc_float: no
+    toc_depth: 6
+    number_sections: no
+params:
+  dbPath: "\\\\clusterfs.pik-potsdam.de\\tmp\\cschoetz\\DEEBpaper10"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, error = TRUE)
+library(tibble)
+library(stringr)
+library(purrr)
+library(readr)
+library(dplyr)
+```
+
+```{r, include=FALSE}
+data <- 
+  read_csv(DEEBpath::summaryTablePath(params$dbPath), col_types=cols()) |> 
+  filter(!is.na(hash))
+```
+
+
+```{r, include=FALSE}
+pattern <- "^([^_]+)_([^\\.]+)\\.csv$"
+fileNames <- list.files(DEEBpath::summaryDir(params$dbPath), pattern = pattern)
+mat <- str_match(fileNames, pattern)
+colnames(mat) <- c("fileName", "model", "method")
+tbl <- as_tibble(mat)
+methodOpts <- 
+  tbl |> 
+  mutate(
+    filePath = normalizePath(file.path(DEEBpath::summaryDir(params$dbPath), fileName), mustWork=TRUE),
+    opts = list(readr::read_csv(filePath, col_types = cols())))
+```
+
+```{r}
+showStatsTable <- function(d, caption, digits=3, format = "f") {
+  if (NROW(d) == 0) return(paste0(caption, ": no data"))
+  dStats <- d 
+  dText <- dStats
+  dText$score <- sprintf(paste0("%.",digits, format), dText$score)
+  tbl <- 
+    dText |> 
+    kableExtra::kbl(
+      caption = caption,
+      booktabs = TRUE,
+      align = c("l", rep("r", ncol(dText) - 1)),
+      digits = 22 # Do not round
+    ) |> 
+    kableExtra::kable_styling(
+      bootstrap_options = c("condensed"),
+      latex_options = c("HOLD_position"),
+      full_width = FALSE) 
+  return(tbl)
+}
+```
+
+```{r results='asis'}
+for (mdl in unique(data$model)) {
+  cat("# Model", mdl, "{.tabset}\n")
+  modelData <- filter(data, model == mdl)
+  for (onr in unique(modelData$obsNr)) {
+    cat("## ObsNr", onr, "{.tabset}\n")
+    obsData <- filter(modelData, obsNr == onr)
+    
+    for (mthd in unique(obsData$methodBase)) {
+      cat("### Method", mthd, "{.tabset}\n")
+      methodData <- filter(obsData, methodBase == mthd)
+      methodOptsOne <- 
+        filter(methodOpts, model == mdl, method == mthd) |> 
+        pull(opts)
+      methodOptsOne <- methodOptsOne[[1]]
+      
+      for (tnr in unique(methodData$taskNr)) {
+        cat("#### Task", tnr, " {.tabset}\n")
+        taskData <- filter(methodData, taskNr == tnr)
+        for (lss in unique(taskData$scoreName)) {
+          cat("##### Score", lss, "\n")
+          lssData <- 
+            filter(taskData, scoreName == lss) |> 
+            select(hash, scoreValue) |> 
+            arrange(desc(scoreValue)) |> 
+            rename(score = scoreValue) |> 
+            left_join(methodOptsOne, by = c("hash" = "id"))
+          cat("\n\n")
+          cat(
+            showStatsTable(
+              lssData, 
+              paste0("Model ", mdl, ", obsNr ", onr, ", Task ", tnr, ": ", lss)))
+          cat("\n\n")
+        }
+      }
+      
+    }
+  }
+}
+```
+
+```{r, include=FALSE}
+nColors <- 256
+bkgndCols <- colorRampPalette(c(
+  rgb(0.5,1,0.5),
+  rgb(1,1,0.5),
+  rgb(1,0.5,0.5)))(nColors)
+
+lossColor <- function(score) {
+  score <- pmin(1, score)
+  i <- 1 + floor((1-score)*nColors)
+  colors <- bkgndCols[i]
+  colors[score <= 0] <- rgb(1,0.5,1)
+  colors[is.na(colors)] <- rgb(0.6,0.6,0.6)
+  colors
+}
+
+colorizeTable <- function(k, colorCols, lossTbl) {
+  for (colId in colorCols) {
+    k <- kableExtra::column_spec(
+      k, 
+      colId,
+      background = lossColor(lossTbl[[colId]]))
+  }
+  k
+}
+```

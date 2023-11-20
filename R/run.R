@@ -94,7 +94,8 @@ runEvalTbl <- function(
     tbl, # use getUnevaled() to get a suitable tibble with columns c("truthNr", "obsNr", "taskNr", "method", "model")
     scoreFilter = NULL,
     createPlots = TRUE,
-    verbose = FALSE
+    verbose = FALSE,
+    writeScoreHtml = TRUE
 ) {
   models <- tbl$model |> unique()
   methods <- tbl$method |> unique()
@@ -138,12 +139,14 @@ runEvalTbl <- function(
       cat(" took ", format((proc.time()-ptMethod)[3]), "s\n", sep="")
     }
 
-    writeDoc(
-      path$eval,
-      "scores",
-      paths = DEEBpath::getScoreFiles(path$eval),
-      reference = "ConstMean",
-      best = "Truth")
+    if (writeScoreHtml) {
+      writeDoc(
+        path$eval,
+        "scores",
+        paths = DEEBpath::getScoreFiles(path$eval),
+        reference = "ConstMean",
+        best = "Truth")
+    }
 
     message(model, " took ", format((proc.time()-pt)[3]), "s")
   }
