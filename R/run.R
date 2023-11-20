@@ -10,7 +10,8 @@ runEval <- function(
   createPlots = TRUE,
   verbose = FALSE,
   onlyNew = FALSE,
-  writeScoreHtml = TRUE
+  writeScoreHtml = TRUE,
+  createSummary = FALSE
 ) {
 
   for (model in models) {
@@ -81,6 +82,8 @@ runEval <- function(
           reference = "ConstMean",
           best = "Truth")
       }
+
+      if (createSummary) createSummary(dbPath)
     }
 
     message(model, " took ", format((proc.time()-pt)[3]), "s")
@@ -95,7 +98,8 @@ runEvalTbl <- function(
     scoreFilter = NULL,
     createPlots = TRUE,
     verbose = FALSE,
-    writeScoreHtml = TRUE
+    writeScoreHtml = TRUE,
+    createSummary = FALSE
 ) {
   models <- tbl$model |> unique()
   methods <- tbl$method |> unique()
@@ -147,6 +151,8 @@ runEvalTbl <- function(
         reference = "ConstMean",
         best = "Truth")
     }
+
+    if (createSummary) createSummary(dbPath)
 
     message(model, " took ", format((proc.time()-pt)[3]), "s")
   }

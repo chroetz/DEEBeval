@@ -71,21 +71,38 @@ collectHyperOfModel <- function(dbPath, model) {
 }
 
 getDistinguishingOptsTable <- function(filePaths, ids, removeNames = NULL) {
-  # TODO: need to extend to list of lists ...
   stopifnot(length(filePaths) == length(ids))
   if (length(filePaths) <= 1) return(tibble::tibble(id = ids))
   opts <- lapply(filePaths, ConfigOpts::readOptsBare)
-  names <- lapply(opts, names) |> unlist() |> unique()
+  names <- lapply(opts, nestedNames) |> unlist() |> unique()
   names <- setdiff(names, removeNames)
-  isIdentical <- sapply(names, \(nm) allSame(lapply(opts, \(opt) opt[[nm]])))
+  isIdentical <- sapply(names, \(nm) allSame(lapply(opts, selectNestedName, nestedName = nm)))
   distinguishingNames <- names[!isIdentical]
-  res <- lapply(distinguishingNames, \(nm) sapply(opts, \(opt) opt[[nm]]))
+  res <- lapply(distinguishingNames, \(nm) sapply(opts, \(o) asString(selectNestedName(o, nm))))
   if (!"id" %in% distinguishingNames) {
     res <- c(list(ids), res)
     distinguishingNames <- c("id", distinguishingNames)
   }
   names(res) <- distinguishingNames
   return(tibble::as_tibble(res))
+}
+
+nestedNames <- function(lst, prefix = "") {
+  nms <- names(lst)
+  nmLst <- lapply(nms, \(nm) {
+    pre <- paste0(prefix, nm)
+    if (is.null(names(lst[[nm]]))) pre else nestedNames(lst[[nm]], paste0(pre, "$"))
+  })
+  return(unlist(nmLst))
+}
+
+selectNestedName <- function(lst, nestedName) {
+  nameLst <- stringr::str_split_1(nestedName, pattern="\\$")
+  return(lst[[nameLst]])
+}
+
+asString <- function(x) {
+  capture.output(dput(x))
 }
 
 allSame <- function(lst) {
