@@ -61,30 +61,16 @@ runEval <- function(
       cat(" took ", format((proc.time()-ptMethod)[3]), "s\n", sep="")
     }
 
-    scoreFiles <- DEEBpath::getScoreFiles(path$eval)
-    if (length(scoreFiles) == 0) {
-      cat("No score files. Do not create scores html.\n")
-    } else {
-      if (onlyNew) {
-        # TODO: use DEEBpath
-        fileNames <- basename(scoreFiles)
-        sel <-
-          substring(fileNames, 7, nchar(fileNames)-9) %in%
-          c(methods, "ConstMean", "ConstLast", "Const", "Truth")
-        scoreFiles <- scoreFiles[sel]
-      }
-
-      if (writeScoreHtml) {
-        writeDoc(
-          path$eval,
-          "scores",
-          paths = scoreFiles,
-          reference = "ConstMean",
-          best = "Truth")
-      }
-
-      if (createSummary) createSummary(dbPath)
+    if (writeScoreHtml) {
+      writeDoc(
+        path$eval,
+        "scores",
+        path = path$eval,
+        reference = "ConstMean",
+        best = "Truth")
     }
+
+    if (createSummary) createSummary(dbPath)
 
     message(model, " took ", format((proc.time()-pt)[3]), "s")
   }
@@ -147,7 +133,7 @@ runEvalTbl <- function(
       writeDoc(
         path$eval,
         "scores",
-        paths = DEEBpath::getScoreFiles(path$eval),
+        path = path$eval,
         reference = "ConstMean",
         best = "Truth")
     }

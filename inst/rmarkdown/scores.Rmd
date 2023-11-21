@@ -8,15 +8,9 @@ output:
     toc_depth: 6
     number_sections: no
 params:
-  paths: 
-  - "~/DEEBDB2/lotkaVolterra/evaluation/task01Const_eval.csv"
-  - "~/DEEBDB2/lotkaVolterra/evaluation/task01TrvlPl_eval.csv"
-  - "~/DEEBDB2/lotkaVolterra/evaluation/task01Truth_eval.csv"
-  - "~/DEEBDB2/lotkaVolterra/evaluation/task02Const_eval.csv"
-  - "~/DEEBDB2/lotkaVolterra/evaluation/task02TrvlPl_eval.csv"
-  - "~/DEEBDB2/lotkaVolterra/evaluation/task02Truth_eval.csv"
   reference: "Const"
   best: "Truth"
+  path: "."
 ---
 
 ```{r setup, include=FALSE}
@@ -28,8 +22,9 @@ library(stringr)
 ```
 
 ```{r, include=FALSE}
+scorePaths <- DEEBpath::getScoreFiles(params$path)
 esti <-
-  params$paths |> 
+  scorePaths |> 
   map(~ read_csv(.) |> tidyr::pivot_longer(-c(method, ends_with("Nr")), names_to="loss")) |> 
   reduce(bind_rows)
 reference <- 
@@ -163,7 +158,7 @@ showStatsTable <- function(d, caption, digits=3, format = "f", colorize="zeroOne
 
 
 ```{r results='asis'}
-pth <- normalizePath(params$paths[1], winslash="/")
+pth <- normalizePath(scorePaths[1], winslash="/")
 fldrs <- str_split(path, "/")[[1]]
 i <- which(fldrs == "evaluation")
 if (length(i) == 1) {
