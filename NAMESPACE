@@ -3,6 +3,7 @@
 export(createSummary)
 export(runEval)
 export(runEvalTbl)
+export(runScoreHtml)
 import(ConfigOpts)
 import(DEEBpath)
 import(DEEBtrajs)

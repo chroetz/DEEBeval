@@ -1,5 +1,9 @@
 #' @export
 createSummary <- function(dbPath = ".", collectScores = TRUE, collectHyper = TRUE) {
+
+  cat("Writing Summary...")
+  pt <- proc.time()
+
   summaryDir <- DEEBpath::summaryDir(dbPath)
   if (collectScores) {
     scores <- collectScores(dbPath)
@@ -22,6 +26,8 @@ createSummary <- function(dbPath = ".", collectScores = TRUE, collectHyper = TRU
     summaryDir,
     "summaryHyper",
     dbPath = normalizePath(dbPath, mustWork=TRUE))
+
+  cat(" done after", format((proc.time()-pt)[3]), "s\n")
 }
 
 collectHyper <- function(dbPath) {

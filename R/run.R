@@ -1,7 +1,7 @@
 #' @export
 runEval <- function(
   dbPath = ".",
-  models = list.dirs(path = dbPath, full.names = FALSE, recursive = FALSE),
+  models = DEEBpath::getModels(dbPath),
   methodsFilter = NULL,
   obsNrFilter = NULL,
   truthNrFilter = NULL,
@@ -61,16 +61,11 @@ runEval <- function(
       cat(" took ", format((proc.time()-ptMethod)[3]), "s\n", sep="")
     }
 
-    if (writeScoreHtml) {
-      writeDoc(
-        path$eval,
-        "scores",
-        path = path$eval,
-        reference = "ConstMean",
-        best = "Truth")
-    }
-
     message(model, " took ", format((proc.time()-pt)[3]), "s")
+  }
+
+  if (writeScoreHtml) {
+    for (model in models) runScoreHtml(dbPath, model)
   }
 
   if (createSummary) createSummary(dbPath)
@@ -129,18 +124,27 @@ runEvalTbl <- function(
       cat(" took ", format((proc.time()-ptMethod)[3]), "s\n", sep="")
     }
 
-    if (writeScoreHtml) {
-      writeDoc(
-        path$eval,
-        "scores",
-        path = path$eval,
-        reference = "ConstMean",
-        best = "Truth")
-    }
-
     message(model, " took ", format((proc.time()-pt)[3]), "s")
+  }
+
+  if (writeScoreHtml) {
+    for (model in models) runScoreHtml(dbPath, model)
   }
 
   if (createSummary) createSummary(dbPath)
 }
 
+
+#' @export
+runScoreHtml <- function(dbPath, model) {
+  cat("Writing ScoreHTML for model", model, "...")
+  pt <- proc.time()
+  paths <- DEEBpath::getPaths(dbPath, model)
+  writeDoc(
+    paths$eval,
+    "scores",
+    path = paths$eval,
+    reference = "ConstMean",
+    best = "Truth")
+  cat(" done after", format((proc.time()-pt)[3]), "s\n")
+}
