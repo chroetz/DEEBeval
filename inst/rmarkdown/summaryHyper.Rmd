@@ -36,23 +36,22 @@ tbl <- as_tibble(mat)
 methodOpts <- 
   tbl |> 
   mutate(
-    filePath = normalizePath(file.path(DEEBpath::summaryDir(params$dbPath), fileName), mustWork=TRUE),
-    opts = list(readr::read_csv(filePath, col_types = cols())))
+    filePath = normalizePath(file.path(DEEBpath::summaryDir(params$dbPath), fileName), mustWork=TRUE))
 ```
 
 ```{r}
-showStatsTable <- function(d, caption, digits=3, format = "f") {
+showStatsTable <- function(d, caption) {
   if (NROW(d) == 0) return(paste0(caption, ": no data"))
   dStats <- d 
   dText <- dStats
-  dText$score <- sprintf(paste0("%.",digits, format), dText$score)
+  dText$score <- sprintf(paste0("%.3e"), dText$score)
   tbl <- 
     dText |> 
     kableExtra::kbl(
       caption = caption,
       booktabs = TRUE,
       align = c("l", rep("r", ncol(dText) - 1)),
-      digits = 22 # Do not round
+      digits = 22 # do not round
     ) |> 
     kableExtra::kable_styling(
       bootstrap_options = c("condensed"),
@@ -73,10 +72,15 @@ for (mdl in unique(data$model)) {
     for (mthd in unique(obsData$methodBase)) {
       cat("### Method", mthd, "{.tabset}\n")
       methodData <- filter(obsData, methodBase == mthd)
+      
       methodOptsOne <- 
         filter(methodOpts, model == mdl, method == mthd) |> 
-        pull(opts)
-      methodOptsOne <- methodOptsOne[[1]]
+        mutate(opts = list(readr::read_csv(filePath, col_types = cols()))) |> 
+        select(-c(model, method, fileName, filePath)) |> 
+        tidyr::unnest(opts)
+      
+      # MathJax can break $ if not escaped.
+      names(methodOptsOne) <- str_replace_all(names(methodOptsOne), fixed("$"), "\\$")
       
       for (tnr in unique(methodData$taskNr)) {
         cat("#### Task", tnr, " {.tabset}\n")
