@@ -70,10 +70,10 @@ runEval <- function(
         best = "Truth")
     }
 
-    if (createSummary) createSummary(dbPath)
-
     message(model, " took ", format((proc.time()-pt)[3]), "s")
   }
+
+  if (createSummary) createSummary(dbPath)
 }
 
 
@@ -138,9 +138,9 @@ runEvalTbl <- function(
         best = "Truth")
     }
 
-    if (createSummary) createSummary(dbPath)
-
     message(model, " took ", format((proc.time()-pt)[3]), "s")
   }
+
+  if (createSummary) createSummary(dbPath)
 }
 
