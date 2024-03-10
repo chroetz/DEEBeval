@@ -1,6 +1,9 @@
 scoreValidTime <- function(follower, target, opts, info) {
   opts <- asOpts(opts, c("ValidTime", "TimeState", "Score"))
-  stopifnot(isTimeEqual(follower, target))
+  if (!isTimeEqual(follower, target)) {
+    warning("unequal time -> interpolating", immediate. = TRUE)
+    follower <- DEEBtrajs::interpolateTrajs(follower, tragetTimes = target$time)
+  }
   if (any(is.na(follower$state)) || any(is.na(target$state))) return(NA)
   res <- apply2TrajId(follower, target, scoreValidTimeOne, opts=opts)
   appendToEnv(info, list(validTime = res))

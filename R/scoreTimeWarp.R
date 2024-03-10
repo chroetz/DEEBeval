@@ -1,6 +1,9 @@
 scoreTimeWarp <- function(trajs1, trajs2, opts, info=NULL) {
   opts <- asOpts(opts, c("TimeWarp", "TimeState", "Score"))
-  stopifnot(isTimeEqual(trajs1, trajs2))
+  if (!isTimeEqual(trajs1, trajs2)) {
+    warning("unequal time -> interpolating", immediate. = TRUE)
+    trajs1 <- DEEBtrajs::interpolateTrajs(trajs1, tragetTimes = trajs2$time)
+  }
   if (any(is.na(trajs1$state)) || any(is.na(trajs2$state))) return(NA)
   if (is.null(info)) info <- new.env(parent = emptyenv())
   calculateTimeWarp(trajs1, trajs2, opts, info)
