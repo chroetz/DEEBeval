@@ -159,7 +159,7 @@ showStatsTable <- function(d, caption, digits=3, format = "f", colorize="zeroOne
 
 ```{r results='asis'}
 pth <- normalizePath(scorePaths[1], winslash="/")
-fldrs <- str_split(path, "/")[[1]]
+fldrs <- str_split(pth, "/")[[1]]
 i <- which(fldrs == "evaluation")
 if (length(i) == 1) {
   cat("\n\n**")
