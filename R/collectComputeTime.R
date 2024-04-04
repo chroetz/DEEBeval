@@ -16,9 +16,9 @@ collectComputeTime <- function(dbPath) {
     durationTable |>
     summarize(
       mean = mean(duration),
-      median = median(duration),
+      median = stats::median(duration),
       max = max(duration),
-      n = n(),
+      n = dplyr::n(),
       .by = file)
   return(durations)
 }

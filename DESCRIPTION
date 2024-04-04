@@ -22,12 +22,14 @@ Imports:
     readr,
     rlang,
     rmarkdown,
+    stats,
+    stringr,
     tidyr,
-    transport
+    transport,
+    utils
 LinkingTo: 
     Rcpp
 Suggests: 
     kableExtra,
     purrr,
-    stringr,
     testthat (>= 3.0.0)

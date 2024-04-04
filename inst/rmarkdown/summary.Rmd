@@ -21,7 +21,7 @@ library(stringr)
 ```
 
 ```{r, include=FALSE}
-data <- read_csv(DEEBpath::summaryTablePath(params$dbPath), col_types=cols())
+data <- read_csv(DEEBpath::summaryTablePath(params$dbPath), col_types = cols())
 ```
 
 ```{r}

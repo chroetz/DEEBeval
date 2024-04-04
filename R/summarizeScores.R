@@ -108,7 +108,7 @@ selectNestedName <- function(lst, nestedName) {
 }
 
 asString <- function(x) {
-  capture.output(dput(x))
+  utils::capture.output(dput(x))
 }
 
 allSame <- function(lst) {

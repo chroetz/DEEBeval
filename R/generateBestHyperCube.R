@@ -2,7 +2,7 @@
 generateBestHyperCube <- function(dbPath, timeInMinutes = 60) {
 
   data <-
-    read_csv(DEEBpath::summaryTablePath(dbPath), col_types=cols()) |>
+    read_csv(DEEBpath::summaryTablePath(dbPath), col_types = readr::cols()) |>
     filter(!is.na(hash))
 
   pattern <- "^([^_]+)_([^\\.]+)\\.csv$"
@@ -45,7 +45,7 @@ generateBestHyperCube <- function(dbPath, timeInMinutes = 60) {
     opts$list <- opts$list[1]
     allGood <- TRUE
     for (nm in names(info$paramCube[[1]])) {
-      if (class(opts$list[[1]][[nm]]) != "expansion") {
+      if (!inherits(opts$list[[1]][[nm]], "expansion")) {
         allGood <- FALSE
         break
       }
@@ -112,12 +112,12 @@ getParamCube <- function(data, methodOpts, model, obsNr, methodBase) {
 
   methodOptsOne <-
     filter(methodOpts, model == .env$model, method == .env$methodBase) |>
-    mutate(opts = list(readr::read_csv(filePath, col_types = cols()))) |>
+    mutate(opts = list(readr::read_csv(filePath, col_types = readr::cols()))) |>
     select(-c(model, method, fileName, filePath)) |>
     tidyr::unnest(opts)
 
   # MathJax can break $ if not escaped.
-  names(methodOptsOne) <- str_replace_all(names(methodOptsOne), fixed("$"), "\\$")
+  names(methodOptsOne) <- str_replace_all(names(methodOptsOne), stringr::fixed("$"), "\\$")
 
   tnr <- targetMethodAndScore |> filter(model == .env$model) |> pull(taskNr)
   lss <- targetMethodAndScore |> filter(model == .env$model) |> pull(scoreName)
