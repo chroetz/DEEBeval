@@ -2,8 +2,11 @@
 #' @import ConfigOpts
 #' @import DEEBtrajs
 #' @import DEEBpath
-#' @importFrom dplyr filter select mutate ends_with relocate
+#' @importFrom dplyr filter select mutate ends_with relocate as_tibble rowwise group_by ungroup distinct pull lst summarize
+#' @importFrom tidyr drop_na
 #' @importFrom rlang .data .env
+#' @importFrom stringr str_match str_replace_all
+#' @importFrom readr read_csv write_csv
 "_PACKAGE"
 
 ## usethis namespace: start

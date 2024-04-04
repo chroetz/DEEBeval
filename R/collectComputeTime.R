@@ -1,0 +1,37 @@
+#' @export
+collectComputeTime <- function(dbPath) {
+  dirPath <- file.path(dbPath, "_log")
+  fileNames <- list.files(dirPath, pattern = "\\.out$")
+  firstLines <- lapply(file.path(dirPath, fileNames), read_lines, n_max = 1)
+  firstLines <- firstLines[sapply(firstLines, length) == 1]
+  matches <- str_match(firstLines, "([^/]+), (\\d+) took (\\d+.?\\d*)s")
+  matches <- matches[, -1]
+  colnames(matches) <- c("file", "nr", "duration")
+  durationTable <-
+    matches |>
+    as_tibble() |>
+    mutate(nr = as.integer(nr), duration = as.double(duration)) |>
+    drop_na()
+  durations <-
+    durationTable |>
+    summarize(
+      mean = mean(duration),
+      median = median(duration),
+      max = max(duration),
+      n = n(),
+      .by = file)
+  return(durations)
+}
+
+#' @export
+writeComputeTime <- function(dbPath) {
+
+  durations <- collectComputeTime(dbPath)
+
+  filePath <- file.path(dbPath, "_hyper", "durations.csv")
+
+  cat("Writing durations to", filePath, "\n")
+  write_csv(durations, file = filePath)
+
+  return(invisible(durations))
+}
