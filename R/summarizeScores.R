@@ -50,23 +50,23 @@ collectHyper <- function(dbPath) {
 collectHyperOfModel <- function(dbPath, model) {
   paths <- DEEBpath::getPaths(dbPath, model)
   dirNames <- list.files(paths$esti, pattern = "^[^_]", include.dirs=TRUE)
-  files <- tibble::tibble(
+  files <- tibble(
     dirName = dirNames[sapply(file.path(paths$esti, dirNames), dir.exists)],
     dirFull = normalizePath(file.path(paths$esti, dirName)),
     hyperFile = lapply(dirFull, \(dir) list.files(dir, pattern = "^Opts_HyperParms.*\\.json$")))
   files <-
     files |>
-    dplyr::filter(sapply(hyperFile, \(fls) length(fls) == 1)) |>
-    dplyr::mutate(
+    filter(sapply(hyperFile, \(fls) length(fls) == 1)) |>
+    mutate(
       hyperFile = sapply(hyperFile, \(fls) fls[[1]]),
-      hasVariations = stringr::str_detect(dirName, "_[0-9a-f]{32}$")) |>
-    dplyr::filter(hasVariations) |>
-    dplyr::mutate(
-      methodBase = stringr::str_sub(dirName, end=-34),
-      hash = stringr::str_sub(dirName, start=-32))
+      hasVariations = str_detect(dirName, "_[0-9a-f]{32}$")) |>
+    filter(hasVariations) |>
+    mutate(
+      methodBase = str_sub(dirName, end=-34),
+      hash = str_sub(dirName, start=-32))
   filesWithOpts <-
     files |>
-    dplyr::summarize(
+    summarize(
       opts = list(
         getDistinguishingOptsTable(file.path(dirFull, hyperFile), hash, removeNames="name")),
       .by = methodBase) |>
@@ -78,7 +78,7 @@ collectHyperOfModel <- function(dbPath, model) {
 
 getDistinguishingOptsTable <- function(filePaths, ids, removeNames = NULL) {
   stopifnot(length(filePaths) == length(ids))
-  if (length(filePaths) <= 1) return(tibble::tibble(id = ids))
+  if (length(filePaths) <= 1) return(tibble(id = ids))
   opts <- lapply(filePaths, ConfigOpts::readOptsBare)
   names <- lapply(opts, nestedNames) |> unlist() |> unique()
   names <- setdiff(names, removeNames)
@@ -90,7 +90,7 @@ getDistinguishingOptsTable <- function(filePaths, ids, removeNames = NULL) {
     distinguishingNames <- c("id", distinguishingNames)
   }
   names(res) <- distinguishingNames
-  return(tibble::as_tibble(res))
+  return(as_tibble(res))
 }
 
 nestedNames <- function(lst, prefix = "") {
