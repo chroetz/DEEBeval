@@ -37,12 +37,12 @@ collectHyper <- function(dbPath) {
       models,
       \(model) {
         collectHyperOfModel(dbPath, model) |>
-          dplyr::mutate(model = model, .before = 1)
+          mutate(model = model, .before = 1)
       }
     )
   res <-
     res|>
-    dplyr::bind_rows()
+    bind_rows()
   return(res)
 }
 
@@ -125,10 +125,10 @@ collectScores <- function(dbPath, aggregationFunction = mean) {
       models,
       \(model) {
         collectScoresOfModel(dbPath, model, aggregationFunction = mean) |>
-          dplyr::mutate(model = model, .before = 1)
+          mutate(model = model, .before = 1)
       }
     ) |>
-    dplyr::bind_rows()
+    bind_rows()
   return(res)
 }
 
@@ -141,15 +141,15 @@ collectScoresOfModel <- function(dbPath, model, aggregationFunction = mean) {
     fileNames,
     \(flnm) {
         readr::read_csv(file.path(paths$eval, flnm), col_types=readr::cols()) |>
-        dplyr::summarise(
+        summarise(
           across(-truthNr, aggregationFunction),
           .by = c(method, obsNr, taskNr))
     }
   ) |>
-    dplyr::bind_rows()
+    bind_rows()
   tbl <-
     scores |>
-    dplyr::mutate(
+    mutate(
       hasVariations = stringr::str_detect(method, "_[0-9a-f]{32}$"),
       methodFull = method,
       methodBase = ifelse(hasVariations, stringr::str_sub(method, end=-34), method),
@@ -157,10 +157,10 @@ collectScoresOfModel <- function(dbPath, model, aggregationFunction = mean) {
       method = NULL,
       hasVariations = NULL
     ) |>
-    dplyr::relocate(
+    relocate(
       methodFull, methodBase, hash, obsNr, taskNr
     ) |>
-    tidyr::pivot_longer(
+    pivot_longer(
       -c(methodFull, methodBase, hash, obsNr, taskNr),
       names_to = "scoreName",
       values_to = "scoreValue")

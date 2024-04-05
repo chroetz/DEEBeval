@@ -109,7 +109,7 @@ runEvalTbl <- function(
         next
       }
       filteredTbl <-
-        tbl |> dplyr::filter(
+        tbl |> filter(
           .data$method == .env$method,
           .data$model == .env$model)
       if (NROW(meta) == 0 || NROW(tbl) == 0) {
@@ -118,7 +118,7 @@ runEvalTbl <- function(
       }
       meta <-
         meta |>
-        dplyr::semi_join(
+        semi_join(
           filteredTbl,
           by = c("truthNr", "obsNr", "taskNr"))
       if (nrow(meta) == 0) {

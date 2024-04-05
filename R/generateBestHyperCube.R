@@ -100,10 +100,18 @@ getFreeFilePath <- function(dirPath, fileName, ending) {
 
 getParamCube <- function(dbPath, data, methodOpts, model, obsNr, methodBase) {
 
-  best <- getBestMethod(dbPath, data, methodOpts, model, obsNr, methodBase)
-  if (is.null(best)) return(NULL)
+  methodData <-
+    data |>
+    filter(model == .env$model, methodBase == .env$methodBase, obsNr == .env$obsNr)
 
-  paramNames <- names(best) |> setdiff("id") |> setdiff(names(data))
+  bestMethod <- .getBestMethodFromMethodData(dbPath, methodData, model)
+  if (is.null(bestMethod)) return(NULL)
+
+  methodOptsOne <- .getMethodOptsOne(methodOpts, model, methodBase)
+
+  best <- bestMethod |> left_join(methodOptsOne, join_by(hash == id))
+
+  paramNames <- names(methodOptsOne) |> setdiff("id")
 
   paramList <- lapply(
     paramNames,
@@ -143,20 +151,6 @@ getNumberOfJobs <- \(paramList) {
 }
 
 
-getBestMethod <- function(dbPath, data, methodOpts, model, obsNr, methodBase) {
-
-  methodData <-
-    data |>
-    filter(model == .env$model, methodBase == .env$methodBase, obsNr == .env$obsNr)
-
-  bestMethod <- .getBestMethodFromMethodData(dbPath, methodData, model)
-
-  methodOptsOne <- .getMethodOptsOne(methodOpts, model, methodBase)
-
-  best <- bestMethod |> left_join(methodOptsOne, join_by(hash == id))
-
-  return(best)
-}
 
 .getBestMethodFromMethodData <- function(dbPath, methodData, model) {
 
@@ -182,7 +176,7 @@ getTargetInfo <- function(dbPath, model) {
     targetMethodAndScore |> filter(model == .env$model) |> pull(target),
     max = \(x) max(x, na.rm = TRUE),
     min = \(x) min(x, na.rm = TRUE))
-  retrun(list(
+  return(list(
     taskNr = tnr,
     scoreName = lss,
     fun = targetFun))

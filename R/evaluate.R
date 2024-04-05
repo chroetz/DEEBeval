@@ -55,14 +55,14 @@ evalMetaAndWriteToFile <- function(
 
 updateScores <- function(old, new) {
   key <- c("method", "truthNr", "obsNr", "taskNr")
-  retainRows <- dplyr::anti_join(old, new, by = key)
-  res <- dplyr::bind_rows(new, retainRows[names(new)])
+  retainRows <- anti_join(old, new, by = key)
+  res <- bind_rows(new, retainRows[names(new)])
   retainColNames <- setdiff(names(old), names(new))
   if (length(retainColNames) > 0) {
     retainCols <- old[c(key, retainColNames)]
-    res <- dplyr::left_join(res, retainCols, by = key)
+    res <- left_join(res, retainCols, by = key)
   }
-  dplyr::arrange(res, .data$method, .data$truthNr, .data$obsNr, .data$taskNr)
+  arrange(res, .data$method, .data$truthNr, .data$obsNr, .data$taskNr)
 }
 
 

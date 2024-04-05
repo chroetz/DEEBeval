@@ -25,7 +25,7 @@ library(stringr)
 scorePaths <- DEEBpath::getScoreFiles(params$path)
 esti <-
   scorePaths |> 
-  map(~ read_csv(.) |> tidyr::pivot_longer(-c(method, ends_with("Nr")), names_to="loss")) |> 
+  map(~ read_csv(.) |> pivot_longer(-c(method, ends_with("Nr")), names_to="loss")) |> 
   reduce(bind_rows)
 reference <- 
   esti |> 
