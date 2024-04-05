@@ -79,7 +79,7 @@ collectHyperOfModel <- function(dbPath, model) {
 getDistinguishingOptsTable <- function(filePaths, ids, removeNames = NULL) {
   stopifnot(length(filePaths) == length(ids))
   if (length(filePaths) <= 1) return(tibble(id = ids))
-  opts <- lapply(filePaths, ConfigOpts::readOptsBare)
+  opts <- lapply(filePaths, ConfigOpts::readOpts)
   names <- lapply(opts, nestedNames) |> unlist() |> unique()
   names <- setdiff(names, removeNames)
   isIdentical <- sapply(names, \(nm) allSame(lapply(opts, selectNestedName, nestedName = nm)))
