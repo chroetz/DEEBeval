@@ -5,8 +5,6 @@ generateBestHyperCube <- function(dbPath, timeInMinutes = 60) {
     read_csv(DEEBpath::summaryTablePath(dbPath), col_types = readr::cols()) |>
     filter(!is.na(hash))
 
-  methodOpts <- getMethodOpts(dbPath)
-
   meta <-
     data |>
     select(model, obsNr, methodBase) |>
@@ -16,39 +14,29 @@ generateBestHyperCube <- function(dbPath, timeInMinutes = 60) {
   res <-
     meta |>
     rowwise() |>
-    mutate(
-      paramCube = list(getParamCube(dbPath, data, methodOpts, model, obsNr, methodBase)),
-      length = length(paramCube)
-    )
-  res <-
+    mutate(bestMethod = getBestMethod(dbPath, data, model, obsNr, methodBase))
+  bests <-
     res |>
-    ungroup() |>
-    mutate(nJobs = sapply(paramCube, getNumberOfJobs))
+    drop_na() |>
+    mutate(filePath = DEEBpath::getRanMethodOptsPath(dbPath, model, bestMethod))
 
-  cat("Best Cube: Up to ", sum(res$nJobs, na.rm=TRUE), "Jobs.\n")
-
-  res$bestCubePath <- NA_character_
-  res$nr <- NA_real_
-  for (i in seq_len(nrow(res))) {
-    info <- res[i, ]
-    if (info$length == 0) next
+  bests$bestCubePath <- NA_character_
+  bests$nr <- NA_real_
+  for (i in seq_len(nrow(bests))) {
+    info <- bests[i, ]
     filePath <- list.files(
       path = file.path(dbPath, "_hyper"),
       pattern = paste0("^", info$methodBase),
       full.names = TRUE)[1]
-    if (is.na(filePath)) next
-    opts <- ConfigOpts::readOptsBare(filePath)
-    opts$list <- opts$list[1]
-    allGood <- TRUE
-    for (nm in names(info$paramCube[[1]])) {
-      if (!inherits(opts$list[[1]][[nm]], "expansion")) {
-        allGood <- FALSE
-        break
-      }
-      params <- info$paramCube[[1]][[nm]]
-      opts$list[[1]][[nm]]$values <- params
+    if (is.na(filePath)) {
+      cat("Did not find base file for", info$methodBase, "\n")
+      next
     }
-    if (!allGood) next
+
+    optsProto <- ConfigOpts::readOptsBare(filePath)
+    optsProto$list <- optsProto$list[1]
+    optsBest <- ConfigOpts::readOpts(info$filePath)
+    optsProto$list[[1]] <- replaceExpandValues(optsProto$list[[1]], optsBest)
 
     outFile <- getFreeFilePath(
       file.path(dbPath, "_hyper"),
@@ -56,15 +44,15 @@ generateBestHyperCube <- function(dbPath, timeInMinutes = 60) {
       "json")
 
     ConfigOpts::writeOpts(
-      opts,
+      optsProto,
       file = outFile$filePath,
       validate = FALSE)
-    res$bestCubePath[i] <- outFile$filePath
-    res$nr[i] <- outFile$nr
+    bests$bestCubePath[i] <- outFile$filePath
+    bests$nr[i] <- outFile$nr
   }
 
   methodCsv <-
-    res |>
+    bests |>
     drop_na(bestCubePath, nr) |>
     mutate(method = paste0(methodBase, "_BestCube_", nr)) |>
     group_by(model) |>
@@ -98,60 +86,15 @@ getFreeFilePath <- function(dirPath, fileName, ending) {
 }
 
 
-getParamCube <- function(dbPath, data, methodOpts, model, obsNr, methodBase) {
+getBestMethod <- function(dbPath, data, model, obsNr, methodBase = NULL) {
 
   methodData <-
     data |>
-    filter(model == .env$model, methodBase == .env$methodBase, obsNr == .env$obsNr)
+    filter(model == .env$model, obsNr == .env$obsNr)
 
-  bestMethod <- .getBestMethodFromMethodData(dbPath, methodData, model)
-  if (is.null(bestMethod)) return(NULL)
-
-  methodOptsOne <- .getMethodOptsOne(methodOpts, model, methodBase)
-
-  best <- bestMethod |> left_join(methodOptsOne, join_by(hash == id))
-
-  paramNames <- names(methodOptsOne) |> setdiff("id")
-
-  paramList <- lapply(
-    paramNames,
-    \(name) {
-      v <- sort(unique(methodOptsOne[[name]]))
-      if (!is.numeric(v)) {
-        kind <- "unclear"
-      } else {
-        if (max(diff(diff(v/mean(abs(v))))) < sqrt(.Machine$double.eps)) {
-          kind <- "additive"
-          delta <- abs(mean(diff(v)))
-        } else if (min(v) > 0 && max(diff(diff(log(v)))) < sqrt(.Machine$double.eps)) {
-          kind <- "multiplicative"
-          delta <- exp(abs(mean(diff(log(v)))))
-        } else {
-          kind <- "unclear"
-        }
-      }
-      v0 <- best[[name]]
-      params <- switch(
-        kind,
-        additive = c(v0 - delta, v0, v0 + delta),
-        multiplicative = c(v0 / delta, v0, v0 * delta),
-        unclear = v0)
-      return(params)
-    }
-  )
-  names(paramList) <- paramNames
-  return(paramList)
-}
-
-getNumberOfJobs <- \(paramList) {
-  x <- sapply(paramList, length)
-  if (is.numeric(x)) return(prod(x))
-  return(NA_real_)
-}
-
-
-
-.getBestMethodFromMethodData <- function(dbPath, methodData, model) {
+  if (!is.null(methodBase)) {
+    methodData <- methodData |> filter(methodBase == .env$methodBase)
+  }
 
   targetInfo <- getTargetInfo(dbPath, model)
 
@@ -160,12 +103,14 @@ getNumberOfJobs <- \(paramList) {
     filter(taskNr == targetInfo$taskNr, scoreName == targetInfo$scoreName) |>
     filter(scoreValue == targetInfo$fun(scoreValue))
 
-  if (nrow(bestMethod) == 0) return(NULL)
+  if (nrow(bestMethod) == 0) return(NA_character_)
 
   bestMethod <- bestMethod[1,]
 
-  return(bestMethod)
+
+  return(bestMethod$methodFull)
 }
+
 
 getTargetInfo <- function(dbPath, model) {
   targetMethodAndScore <- DEEBpath::getTargetTaskAndScore(dbPath)
@@ -193,4 +138,49 @@ getTargetInfo <- function(dbPath, model) {
   names(methodOptsOne) <- str_replace_all(names(methodOptsOne), stringr::fixed("$"), "\\$")
 
   return(methodOptsOne)
+}
+
+
+replaceExpandValues <- function(proto, replacement) {
+  if (inherits(proto, "expansion")) {
+    if (!"generate" %in% names(proto)) return(proto)
+    proto$values <- generateExpansionValues(replacement, proto$generate)
+    return(proto)
+  }
+  if (is.list(proto)) {
+    stopifnot(is.list(replacement))
+    if (!is.null(names(proto))) {
+      if(!all(names(proto) %in% names(replacement))) browser()
+      stopifnot(all(names(proto) %in% names(replacement)))
+      for (nm in names(proto)) {
+        proto[[nm]] <- replaceExpandValues(proto[[nm]], replacement[[nm]])
+      }
+    } else {
+      stopifnot(length(proto) == length(replacement))
+      for (i in seq_along(proto)) {
+        proto[[i]] <- replaceExpandValues(proto[[i]], replacement[[i]])
+      }
+    }
+    return(proto)
+  }
+  return(proto)
+}
+
+
+generateExpansionValues <- function(value, generateInfo) {
+  out <- switch(
+    generateInfo$kind,
+    multiply = generateExpansionValuesMultiply(value, generateInfo$value),
+    add = generateExpansionValuesAdd(value, generateInfo$value),
+    stop("Unknown generate kind ", kind))
+  out <- out[out >= generateInfo$min & out <= generateInfo$max]
+  return(out)
+}
+
+generateExpansionValuesMultiply <- function(value, factor) {
+  c(value / factor, value, value * factor)
+}
+
+generateExpansionValuesAdd <- function(value, summand) {
+  c(value - summand, value, value + summand)
 }
