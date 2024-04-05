@@ -28,15 +28,7 @@ data <-
 
 
 ```{r, include=FALSE}
-pattern <- "^([^_]+)_([^\\.]+)\\.csv$"
-fileNames <- list.files(DEEBpath::summaryDir(params$dbPath), pattern = pattern)
-mat <- str_match(fileNames, pattern)
-colnames(mat) <- c("fileName", "model", "method")
-tbl <- as_tibble(mat)
-methodOpts <- 
-  tbl |> 
-  mutate(
-    filePath = normalizePath(file.path(DEEBpath::summaryDir(params$dbPath), fileName), mustWork=TRUE))
+methodOpts <- DEEBeval::getMethodOpts(dbPath)
 ```
 
 ```{r}

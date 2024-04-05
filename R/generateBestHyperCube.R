@@ -5,15 +5,7 @@ generateBestHyperCube <- function(dbPath, timeInMinutes = 60) {
     read_csv(DEEBpath::summaryTablePath(dbPath), col_types = readr::cols()) |>
     filter(!is.na(hash))
 
-  pattern <- "^([^_]+)_([^\\.]+)\\.csv$"
-  fileNames <- list.files(DEEBpath::summaryDir(dbPath), pattern = pattern)
-  mat <- str_match(fileNames, pattern)
-  colnames(mat) <- c("fileName", "model", "method")
-  tbl <- as_tibble(mat)
-  methodOpts <-
-    tbl |>
-    mutate(
-      filePath = normalizePath(file.path(DEEBpath::summaryDir(dbPath), fileName), mustWork=TRUE))
+  methodOpts <- getMethodOpts(dbPath)
 
   res <-
     data |>

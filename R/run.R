@@ -16,7 +16,7 @@ runEval <- function(
 
   for (model in models) {
 
-    message("MODEL: ", model)
+    cat("MODEL: ", model, "\n")
     pt <- proc.time()
 
     path <- DEEBpath::getPaths(dbPath, model)
@@ -25,7 +25,7 @@ runEval <- function(
     if (!is.null(methodsFilter)) methods <- intersect(methods, methodsFilter)
 
     for (method in methods) {
-      cat(method, "\n")
+      cat("\t", method)
       ptMethod <- proc.time()
       methodEstiPath <- file.path(path$esti, method)
       if (!dir.exists(methodEstiPath)) next
@@ -43,7 +43,7 @@ runEval <- function(
             "task"),
           removeNa = TRUE)
       if (!"estiPath" %in% colnames(meta)) {
-        cat("No estimation file found.\n")
+        cat(" No estimation file found.\n")
         next
       }
       evalMetaAndWriteToFile(
@@ -61,7 +61,7 @@ runEval <- function(
       cat(" took ", format((proc.time()-ptMethod)[3]), "s\n", sep="")
     }
 
-    message(model, " took ", format((proc.time()-pt)[3]), "s")
+    cat(model, " took ", format((proc.time()-pt)[3]), "s", sep="")
   }
 
   if (writeScoreHtml) {
@@ -88,11 +88,11 @@ runEvalTbl <- function(
   # TODO: remove code duplications with runEval()
 
   for (model in models) {
-    message("MODEL: ", model)
+    cat("MODEL:", model)
     pt <- proc.time()
     path <- DEEBpath::getPaths(dbPath, model)
     for (method in methods) {
-      cat(method)
+      cat("\t", method)
       ptMethod <- proc.time()
       methodEstiPath <- file.path(path$esti, method)
       if (!dir.exists(methodEstiPath)) next
@@ -104,14 +104,27 @@ runEvalTbl <- function(
             c("task", "truth"),
             "task"),
           removeNa = TRUE)
+      if (length(meta) == 0) {
+        cat(" no files found\n")
+        next
+      }
+      filteredTbl <-
+        tbl |> dplyr::filter(
+          .data$method == .env$method,
+          .data$model == .env$model)
+      if (NROW(meta) == 0 || NROW(tbl) == 0) {
+        cat(" nothing at all to evaluate\n")
+        next
+      }
       meta <-
         meta |>
         dplyr::semi_join(
-          tbl |> dplyr::filter(
-            .data$method == .env$method,
-            .data$model == .env$model),
+          filteredTbl,
           by = c("truthNr", "obsNr", "taskNr"))
-      if (nrow(meta) == 0) next
+      if (nrow(meta) == 0) {
+        cat(" nothing to evaluate\n")
+        next
+      }
       evalMetaAndWriteToFile(
         meta,
         path$eval,
@@ -124,7 +137,7 @@ runEvalTbl <- function(
       cat(" took ", format((proc.time()-ptMethod)[3]), "s\n", sep="")
     }
 
-    message(model, " took ", format((proc.time()-pt)[3]), "s")
+    cat(model, " took ", format((proc.time()-pt)[3]), "s", sep="")
   }
 
   if (writeScoreHtml) {
@@ -146,5 +159,5 @@ runScoreHtml <- function(dbPath, model) {
     path = paths$eval,
     reference = "ConstMean",
     best = "Truth")
-  cat(" done after", format((proc.time()-pt)[3]), "s\n")
+  cat(" done after ", format((proc.time()-pt)[3]), "s\n", sep="")
 }
