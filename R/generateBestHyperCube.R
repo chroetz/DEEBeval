@@ -7,13 +7,17 @@ generateBestHyperCube <- function(dbPath, timeInMinutes = 60) {
 
   methodOpts <- getMethodOpts(dbPath)
 
-  res <-
+  meta <-
     data |>
     select(model, obsNr, methodBase) |>
     distinct() |>
+    drop_na()
+
+  res <-
+    meta |>
     rowwise() |>
     mutate(
-      paramCube = list(getParamCube(data, methodOpts, model, obsNr, methodBase)),
+      paramCube = list(getParamCube(dbPath, data, methodOpts, model, obsNr, methodBase)),
       length = length(paramCube)
     )
   res <-
@@ -94,9 +98,9 @@ getFreeFilePath <- function(dirPath, fileName, ending) {
 }
 
 
-getParamCube <- function(data, methodOpts, model, obsNr, methodBase) {
+getParamCube <- function(dbPath, data, methodOpts, model, obsNr, methodBase) {
 
-  best <- getBestMethod(data, methodOpts, model, obsNr, methodBase)
+  best <- getBestMethod(dbPath, data, methodOpts, model, obsNr, methodBase)
   if (is.null(best)) return(NULL)
 
   paramNames <- names(best) |> setdiff("id") |> setdiff(names(data))
@@ -138,13 +142,53 @@ getNumberOfJobs <- \(paramList) {
   return(NA_real_)
 }
 
-getBestMethod <- function(data, methodOpts, model, obsNr, methodBase) {
 
-  targetMethodAndScore <- DEEBpath::getTargetMethodAndScore(dbPath)
+getBestMethod <- function(dbPath, data, methodOpts, model, obsNr, methodBase) {
 
   methodData <-
     data |>
     filter(model == .env$model, methodBase == .env$methodBase, obsNr == .env$obsNr)
+
+  bestMethod <- .getBestMethodFromMethodData(dbPath, methodData, model)
+
+  methodOptsOne <- .getMethodOptsOne(methodOpts, model, methodBase)
+
+  best <- bestMethod |> left_join(methodOptsOne, join_by(hash == id))
+
+  return(best)
+}
+
+.getBestMethodFromMethodData <- function(dbPath, methodData, model) {
+
+  targetInfo <- getTargetInfo(dbPath, model)
+
+  bestMethod <-
+    methodData |>
+    filter(taskNr == targetInfo$taskNr, scoreName == targetInfo$scoreName) |>
+    filter(scoreValue == targetInfo$fun(scoreValue))
+
+  if (nrow(bestMethod) == 0) return(NULL)
+
+  bestMethod <- bestMethod[1,]
+
+  return(bestMethod)
+}
+
+getTargetInfo <- function(dbPath, model) {
+  targetMethodAndScore <- DEEBpath::getTargetTaskAndScore(dbPath)
+  tnr <- targetMethodAndScore |> filter(model == .env$model) |> pull(taskNr)
+  lss <- targetMethodAndScore |> filter(model == .env$model) |> pull(scoreName)
+  targetFun <- switch(
+    targetMethodAndScore |> filter(model == .env$model) |> pull(target),
+    max = \(x) max(x, na.rm = TRUE),
+    min = \(x) min(x, na.rm = TRUE))
+  retrun(list(
+    taskNr = tnr,
+    scoreName = lss,
+    fun = targetFun))
+}
+
+.getMethodOptsOne <- function(methodOpts, model, methodBase) {
 
   methodOptsOne <-
     filter(methodOpts, model == .env$model, method == .env$methodBase) |>
@@ -155,22 +199,5 @@ getBestMethod <- function(data, methodOpts, model, obsNr, methodBase) {
   # MathJax can break $ if not escaped.
   names(methodOptsOne) <- str_replace_all(names(methodOptsOne), stringr::fixed("$"), "\\$")
 
-  tnr <- targetMethodAndScore |> filter(model == .env$model) |> pull(taskNr)
-  lss <- targetMethodAndScore |> filter(model == .env$model) |> pull(scoreName)
-  targetFun <- switch(
-    targetMethodAndScore |> filter(model == .env$model) |> pull(target),
-    max = \(x) max(x, na.rm = TRUE),
-    min = \(x) min(x, na.rm = TRUE))
-
-  bestMethod <-
-    methodData |>
-    filter(taskNr == tnr, scoreName == lss) |>
-    filter(scoreValue == targetFun(scoreValue))
-
-  if (nrow(bestMethod) == 0) return(NULL)
-
-  bestMethod <- bestMethod[1,]
-  best <- bestMethod |> left_join(methodOptsOne, join_by(id == hash))
-
-  return(best)
+  return(methodOptsOne)
 }

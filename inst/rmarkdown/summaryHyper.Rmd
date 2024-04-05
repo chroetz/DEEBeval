@@ -34,8 +34,7 @@ methodOpts <- DEEBeval::getMethodOpts(params$dbPath)
 ```{r}
 showStatsTable <- function(d, caption) {
   if (NROW(d) == 0) return(paste0(caption, ": no data"))
-  dStats <- d 
-  dText <- dStats
+  dText <- d
   dText$score <- sprintf(paste0("%.3e"), dText$score)
   tbl <- 
     dText |> 
@@ -63,17 +62,11 @@ for (mdl in unique(data$model)) {
     
     for (mthd in unique(obsData$methodBase)) {
       cat("### Method", mthd, "{.tabset}\n")
-      methodData <- filter(obsData, methodBase == mthd)
+      methodData <- 
+        filter(obsData, methodBase == mthd)
       
-      methodOptsOne <- 
-        filter(methodOpts, model == mdl, method == mthd) |> 
-        mutate(opts = list(readr::read_csv(filePath, col_types = cols()))) |> 
-        select(-c(model, method, fileName, filePath)) |> 
-        tidyr::unnest(opts)
-      
-      # MathJax can break $ if not escaped.
-      names(methodOptsOne) <- str_replace_all(names(methodOptsOne), fixed("$"), "\\$")
-      
+      methodOptsOne <- DEEBeval:::.getMethodOptsOne(methodOpts, mdl, mthd)
+ 
       for (tnr in unique(methodData$taskNr)) {
         cat("#### Task", tnr, " {.tabset}\n")
         taskData <- filter(methodData, taskNr == tnr)
@@ -85,6 +78,7 @@ for (mdl in unique(data$model)) {
             arrange(desc(scoreValue)) |> 
             rename(score = scoreValue) |> 
             left_join(methodOptsOne, by = c("hash" = "id"))
+          
           cat("\n\n")
           cat(
             showStatsTable(
