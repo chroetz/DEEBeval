@@ -110,6 +110,7 @@ selectNestedName <- function(lst, nestedName) {
 }
 
 asString <- function(x) {
+  if (is.null(x)) return("")
   utils::capture.output(dput(x, control = c("keepNA", "niceNames", "showAttributes")))
 }
 
