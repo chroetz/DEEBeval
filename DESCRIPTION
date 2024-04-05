@@ -15,10 +15,10 @@ Imports:
     DEEBpath,
     DEEBplots,
     DEEBtrajs,
+    DEEButil,
     dplyr,
     dtw,
     proxy,
-    Rcpp,
     readr,
     rlang,
     rmarkdown,
@@ -27,9 +27,6 @@ Imports:
     tidyr,
     transport,
     utils
-LinkingTo: 
-    Rcpp
 Suggests: 
     kableExtra,
-    purrr,
-    testthat (>= 3.0.0)
+    purrr

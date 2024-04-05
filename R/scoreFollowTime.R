@@ -15,7 +15,7 @@ scoreFollowTimeOne <- function(follower, target, opts) {
   normalization <- calculateNormalization(target)
   targetNormed <- normalization$normalize(target)
   followerNormed <- normalization$normalize(follower)
-  dst <- minDistTimeState(followerNormed$state, targetNormed$state, target$time, opts$timeScale)
+  dst <- DEEButil::minDistTimeState(followerNormed$state, targetNormed$state, target$time, opts$timeScale)
   iLoss <- which(dst > opts$radius)[1]
   if (is.na(iLoss)) {
     tm <- max(target$time)
