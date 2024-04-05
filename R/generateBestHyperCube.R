@@ -136,7 +136,6 @@ getParamCube <- function(dbPath, data, methodOpts, model, obsNr, methodBase) {
         additive = c(v0 - delta, v0, v0 + delta),
         multiplicative = c(v0 / delta, v0, v0 * delta),
         unclear = v0)
-      if (is.numeric(params)) params <- as.double(params)
       return(params)
     }
   )

@@ -84,7 +84,9 @@ getDistinguishingOptsTable <- function(filePaths, ids, removeNames = NULL) {
   names <- setdiff(names, removeNames)
   isIdentical <- sapply(names, \(nm) allSame(lapply(opts, selectNestedName, nestedName = nm)))
   distinguishingNames <- names[!isIdentical]
-  res <- lapply(distinguishingNames, \(nm) sapply(opts, \(o) asString(selectNestedName(o, nm))))
+  res <- lapply(
+    distinguishingNames,
+    \(nm) sapply(opts, \(o) asString(selectNestedName(o, nm)))) # TODO: It seems quite hacky to distinguish objects by their string representation...
   if (!"id" %in% distinguishingNames) {
     res <- c(list(ids), res)
     distinguishingNames <- c("id", distinguishingNames)
@@ -108,7 +110,7 @@ selectNestedName <- function(lst, nestedName) {
 }
 
 asString <- function(x) {
-  utils::capture.output(dput(x))
+  utils::capture.output(dput(x, control = c("keepNA", "niceNames", "showAttributes")))
 }
 
 allSame <- function(lst) {
