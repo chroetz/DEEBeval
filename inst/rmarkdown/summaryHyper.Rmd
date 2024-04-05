@@ -28,7 +28,7 @@ data <-
 
 
 ```{r, include=FALSE}
-methodOpts <- DEEBeval::getMethodOpts(dbPath)
+methodOpts <- DEEBeval::getMethodOpts(params$dbPath)
 ```
 
 ```{r}

@@ -96,6 +96,50 @@ getFreeFilePath <- function(dirPath, fileName, ending) {
 
 getParamCube <- function(data, methodOpts, model, obsNr, methodBase) {
 
+  best <- getBestMethod(data, methodOpts, model, obsNr, methodBase)
+  if (is.null(best)) return(NULL)
+
+  paramNames <- names(best) |> setdiff("id") |> setdiff(names(data))
+
+  paramList <- lapply(
+    paramNames,
+    \(name) {
+      v <- sort(unique(methodOptsOne[[name]]))
+      if (!is.numeric(v)) {
+        kind <- "unclear"
+      } else {
+        if (max(diff(diff(v/mean(abs(v))))) < sqrt(.Machine$double.eps)) {
+          kind <- "additive"
+          delta <- abs(mean(diff(v)))
+        } else if (min(v) > 0 && max(diff(diff(log(v)))) < sqrt(.Machine$double.eps)) {
+          kind <- "multiplicative"
+          delta <- exp(abs(mean(diff(log(v)))))
+        } else {
+          kind <- "unclear"
+        }
+      }
+      v0 <- best[[name]]
+      params <- switch(
+        kind,
+        additive = c(v0 - delta, v0, v0 + delta),
+        multiplicative = c(v0 / delta, v0, v0 * delta),
+        unclear = v0)
+      if (is.numeric(params)) params <- as.double(params)
+      return(params)
+    }
+  )
+  names(paramList) <- paramNames
+  return(paramList)
+}
+
+getNumberOfJobs <- \(paramList) {
+  x <- sapply(paramList, length)
+  if (is.numeric(x)) return(prod(x))
+  return(NA_real_)
+}
+
+getBestMethod <- function(data, methodOpts, model, obsNr, methodBase) {
+
   targetMethodAndScore <- DEEBpath::getTargetMethodAndScore(dbPath)
 
   methodData <-
@@ -118,51 +162,15 @@ getParamCube <- function(data, methodOpts, model, obsNr, methodBase) {
     max = \(x) max(x, na.rm = TRUE),
     min = \(x) min(x, na.rm = TRUE))
 
-  bestHash <-
+  bestMethod <-
     methodData |>
     filter(taskNr == tnr, scoreName == lss) |>
-    filter(scoreValue == targetFun(scoreValue)) |>
-    pull(hash)
-  bestHash <- bestHash[1]
-  bestParameters <- methodOptsOne |> filter(id == bestHash)
-  stopifnot(nrow(bestParameters) %in% c(0,1))
-  if (nrow(bestParameters) == 0) return(NULL)
+    filter(scoreValue == targetFun(scoreValue))
 
-  paramNames <- setdiff(names(bestParameters), "id")
-  paramList <- lapply(
-    paramNames,
-    \(name) {
-      v <- sort(unique(methodOptsOne[[name]]))
-      if (!is.numeric(v)) {
-        kind <- "unclear"
-      } else {
-        if (max(diff(diff(v/mean(abs(v))))) < sqrt(.Machine$double.eps)) {
-          kind <- "additive"
-          delta <- abs(mean(diff(v)))
-        } else if (min(v) > 0 && max(diff(diff(log(v)))) < sqrt(.Machine$double.eps)) {
-          kind <- "multiplicative"
-          delta <- exp(abs(mean(diff(log(v)))))
-        } else {
-          kind <- "unclear"
-        }
-      }
-      v0 <- bestParameters[[name]]
-      params <- switch(
-        kind,
-        additive = c(v0 - delta, v0, v0 + delta),
-        multiplicative = c(v0 / delta, v0, v0 * delta),
-        unclear = v0)
-      if (is.numeric(params)) params <- as.double(params)
-      return(params)
-    }
-  )
-  names(paramList) <- paramNames
-  return(paramList)
+  if (nrow(bestMethod) == 0) return(NULL)
+
+  bestMethod <- bestMethod[1,]
+  best <- bestMethod |> left_join(methodOptsOne, join_by(id == hash))
+
+  return(best)
 }
-
-getNumberOfJobs <- \(paramList) {
-  x <- sapply(paramList, length)
-  if (is.numeric(x)) return(prod(x))
-  return(NA_real_)
-}
-
