@@ -88,14 +88,17 @@ runEvalTbl <- function(
   # TODO: remove code duplications with runEval()
 
   for (model in models) {
-    cat("MODEL:", model)
+    cat("MODEL:", model, "\n")
     pt <- proc.time()
     path <- DEEBpath::getPaths(dbPath, model)
     for (method in methods) {
       cat("\t", method)
       ptMethod <- proc.time()
       methodEstiPath <- file.path(path$esti, method)
-      if (!dir.exists(methodEstiPath)) next
+      if (!dir.exists(methodEstiPath)) {
+        cat(" methodEstiPath does not exist\n")
+        next
+      }
       meta <-
         DEEBpath::getMetaGeneric(
           c(path$truth, path$obs, methodEstiPath, path$task),
@@ -137,7 +140,7 @@ runEvalTbl <- function(
       cat(" took ", format((proc.time()-ptMethod)[3]), "s\n", sep="")
     }
 
-    cat(model, " took ", format((proc.time()-pt)[3]), "s", sep="")
+    cat(model, " took ", format((proc.time()-pt)[3]), "s\n", sep="")
   }
 
   if (writeScoreHtml) {

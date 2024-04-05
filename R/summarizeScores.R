@@ -106,7 +106,12 @@ nestedNames <- function(lst, prefix = "") {
 
 selectNestedName <- function(lst, nestedName) {
   nameLst <- stringr::str_split_1(nestedName, pattern="\\$")
-  return(lst[[nameLst]])
+  res <- tryCatch(
+    lst[[nameLst]],
+    error = \(cond) {
+      stop("selectNestedName: ", paste0(nameLst, collapse=","), ". names(lst):", paste0(names(lst), collapse=","))
+    })
+  return(res)
 }
 
 asString <- function(x) {
