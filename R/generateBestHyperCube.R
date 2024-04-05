@@ -1,6 +1,8 @@
 #' @export
 generateBestHyperCube <- function(dbPath, timeInMinutes = 60) {
 
+  bestHyperCubePaths <- getNextFreeBestHyperCubeNumber(dbPath)
+
   data <-
     read_csv(DEEBpath::summaryTablePath(dbPath), col_types = readr::cols()) |>
     filter(!is.na(hash))
@@ -39,7 +41,7 @@ generateBestHyperCube <- function(dbPath, timeInMinutes = 60) {
     optsProto$list[[1]] <- replaceExpandValues(optsProto$list[[1]], optsBest)
 
     outFile <- getFreeFilePath(
-      file.path(dbPath, "_hyper"),
+      bestHyperCubePaths$dirPath,
       paste0(info$methodBase, "_BestCube"),
       "json")
 
@@ -54,18 +56,17 @@ generateBestHyperCube <- function(dbPath, timeInMinutes = 60) {
   methodCsv <-
     bests |>
     drop_na(bestCubePath, nr) |>
-    mutate(method = paste0(methodBase, "_BestCube_", nr)) |>
+    mutate(method = file.path(
+      bestHyperCubePaths$dir,
+      paste0(methodBase, "_BestCube_", nr))
+    ) |>
     group_by(model) |>
     mutate(obs = DEEBpath::getObsNameFromNr(dbPath, model, obsNr)) |>
     ungroup() |>
     select(model, method, obs) |>
     mutate(timeInMinutes = .env$timeInMinutes)
 
-  outFile <- getFreeFilePath(
-    file.path(dbPath, "_hyper"),
-    "methods_BestCube",
-    "csv")
-  write_csv(methodCsv, outFile$filePath)
+  write_csv(methodCsv, bestHyperCubePaths$csvFilePath)
 
   cat("Created:", outFile$filePath, "\n")
   return(invisible())
@@ -84,6 +85,23 @@ getFreeFilePath <- function(dirPath, fileName, ending) {
     filePath,
     nr))
 }
+
+
+getNextFreeBestHyperCubeNumber <- function(dbPath) {
+   basePath <- file.path(dbPath, "_hyper")
+   for (nr in 1:1e4) {
+    csvFilePath <- file.path(basePath, paste0("methods_BestCube_", nr, ".csv"))
+    dirPath <- file.path(basePath, paste0("methods_BestCube_", nr))
+    if (!file.exists(csvFilePath) && !dir.exists(dirPath)) break
+  }
+  stopifnot(nr < 1e4)
+  return(lst(
+    csvFilePath,
+    dirPath,
+    dir = basename(dirPath),
+    nr))
+}
+
 
 
 getBestMethod <- function(dbPath, data, model, obsNr, methodBase = NULL) {
@@ -150,7 +168,6 @@ replaceExpandValues <- function(proto, replacement) {
   if (is.list(proto)) {
     stopifnot(is.list(replacement))
     if (!is.null(names(proto))) {
-      if(!all(names(proto) %in% names(replacement))) browser()
       stopifnot(all(names(proto) %in% names(replacement)))
       for (nm in names(proto)) {
         proto[[nm]] <- replaceExpandValues(proto[[nm]], replacement[[nm]])
