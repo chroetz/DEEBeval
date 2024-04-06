@@ -82,65 +82,66 @@ runEvalTbl <- function(
     writeScoreHtml = TRUE,
     createSummary = FALSE
 ) {
-  models <- tbl$model |> unique()
-  methods <- tbl$method |> unique()
+
+  tblModelMethod <-
+    tbl |>
+    select(model, method) |>
+    distinct() |>
+    arrange(model, method)
 
   # TODO: remove code duplications with runEval()
 
-  for (model in models) {
-    cat("MODEL:", model, "\n")
+  for (i in seq_len(nrow(tblModelMethod))) {
+    model <- tblModelMethod$model[i]
+    method <- tblModelMethod$method[i]
+    cat(model, method)
     pt <- proc.time()
     path <- DEEBpath::getPaths(dbPath, model)
-    for (method in methods) {
-      cat("\t", method)
-      ptMethod <- proc.time()
-      methodEstiPath <- file.path(path$esti, method)
-      if (!dir.exists(methodEstiPath)) {
-        cat(" methodEstiPath does not exist\n")
-        next
-      }
-      meta <-
-        DEEBpath::getMetaGeneric(
-          c(path$truth, path$obs, methodEstiPath, path$task),
-          tagFileFilter = list(
-            c("truth", "obs", "task", "esti"),
-            c("task", "truth"),
-            "task"),
-          removeNa = TRUE)
-      if (length(meta) == 0) {
-        cat(" no files found\n")
-        next
-      }
-      filteredTbl <-
-        tbl |> filter(
-          .data$method == .env$method,
-          .data$model == .env$model)
-      if (NROW(meta) == 0 || NROW(tbl) == 0) {
-        cat(" nothing at all to evaluate\n")
-        next
-      }
-      meta <-
-        meta |>
-        semi_join(
-          filteredTbl,
-          by = c("truthNr", "obsNr", "taskNr"))
-      if (nrow(meta) == 0) {
-        cat(" nothing to evaluate\n")
-        next
-      }
-      evalMetaAndWriteToFile(
-        meta,
-        path$eval,
-        path$plots,
-        method,
-        createPlots = createPlots,
-        scoreFilter = scoreFilter,
-        verbose = verbose)
-      if (createPlots) createExtraPlots(path, method)
-      cat(" took ", format((proc.time()-ptMethod)[3]), "s\n", sep="")
-    }
 
-    cat(model, " took ", format((proc.time()-pt)[3]), "s\n", sep="")
+    methodEstiPath <- file.path(path$esti, method)
+    if (!dir.exists(methodEstiPath)) {
+      cat(" methodEstiPath does not exist:", methodEstiPath,"\n")
+      next
+    }
+    meta <-
+      DEEBpath::getMetaGeneric(
+        c(path$truth, path$obs, methodEstiPath, path$task),
+        tagFileFilter = list(
+          c("truth", "obs", "task", "esti"),
+          c("task", "truth"),
+          "task"),
+        removeNa = TRUE)
+    if (length(meta) == 0) {
+      cat(" no files found\n")
+      next
+    }
+    filteredTbl <-
+      tbl |> filter(
+        .data$method == .env$method,
+        .data$model == .env$model)
+    if (NROW(meta) == 0 || NROW(tbl) == 0) {
+      cat(" nothing at all to evaluate\n")
+      next
+    }
+    meta <-
+      meta |>
+      semi_join(
+        filteredTbl,
+        by = c("truthNr", "obsNr", "taskNr"))
+    if (nrow(meta) == 0) {
+      cat(" nothing to evaluate\n")
+      next
+    }
+    evalMetaAndWriteToFile(
+      meta,
+      path$eval,
+      path$plots,
+      method,
+      createPlots = createPlots,
+      scoreFilter = scoreFilter,
+      verbose = verbose)
+    if (createPlots) createExtraPlots(path, method)
+    cat(" took ", format((proc.time()-pt)[3]), "s\n", sep="")
   }
 
   if (writeScoreHtml) {
