@@ -54,7 +54,7 @@ for (mdl in unique(data$model)) {
   cat("# Model", mdl, "{.tabset}\n")
   modelData <- filter(data, model == mdl)
   for (onr in unique(modelData$obsNr)) {
-    obsName <- DEEBpath::getObsNameFromNr(dbPath, mdl, onr)
+    obsName <- DEEBpath::getObsNameFromNr(params$dbPath, mdl, onr)
     cat("## Obs", obsName, "{.tabset}\n")
     obsData <- filter(modelData, obsNr == onr)
     for (tnr in unique(obsData$taskNr)) {

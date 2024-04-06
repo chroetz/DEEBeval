@@ -2,6 +2,8 @@
 generateBestHyperCube <- function(dbPath, timeInMinutes = 60) {
 
   bestHyperCubePaths <- getNextFreeBestHyperCubeNumber(dbPath)
+  if (!dir.exists(bestHyperCubePaths$dirPath))
+    dir.create(bestHyperCubePaths$dirPath, recursive=TRUE)
 
   data <-
     read_csv(DEEBpath::summaryTablePath(dbPath), col_types = readr::cols()) |>
@@ -40,11 +42,9 @@ generateBestHyperCube <- function(dbPath, timeInMinutes = 60) {
     optsBest <- ConfigOpts::readOpts(info$filePath)
     optsProto$list[[1]] <- replaceExpandValues(optsProto$list[[1]], optsBest)
 
-    outFile <- getFreeFilePath(
-      bestHyperCubePaths$dirPath,
-      paste0(info$methodBase, "_BestCube"),
-      "json")
+    outFile <- getFreeFilePath(bestHyperCubePaths$dirPath, info$methodBase, "json")
 
+    optsProto$name <- info$methodBase
     ConfigOpts::writeOpts(
       optsProto,
       file = outFile$filePath,
@@ -58,7 +58,7 @@ generateBestHyperCube <- function(dbPath, timeInMinutes = 60) {
     drop_na(bestCubePath, nr) |>
     mutate(method = file.path(
       bestHyperCubePaths$dir,
-      paste0(methodBase, "_BestCube_", nr))
+      paste0(methodBase, "_", nr))
     ) |>
     group_by(model) |>
     mutate(obs = DEEBpath::getObsNameFromNr(dbPath, model, obsNr)) |>
