@@ -54,7 +54,8 @@ for (mdl in unique(data$model)) {
   cat("# Model", mdl, "{.tabset}\n")
   modelData <- filter(data, model == mdl)
   for (onr in unique(modelData$obsNr)) {
-    cat("## ObsNr", onr, "{.tabset}\n")
+    obsName <- DEEBpath::getObsNameFromNr(dbPath, mdl, onr)
+    cat("## Obs", obsName, "{.tabset}\n")
     obsData <- filter(modelData, obsNr == onr)
     for (tnr in unique(obsData$taskNr)) {
       cat("### Task", tnr, " {.tabset}\n")
@@ -66,7 +67,7 @@ for (mdl in unique(data$model)) {
         cat(
           showStatsTable(
             lssData, 
-            paste0("Model ", mdl, ", obsNr ", onr, ", Task ", tnr, ": ", lss)))
+            paste0("Model ", mdl, ", obs ", obsName, ", Task ", tnr, ": ", lss)))
         cat("\n\n")
       }
     }
