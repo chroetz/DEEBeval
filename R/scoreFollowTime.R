@@ -14,9 +14,10 @@ scoreFollowTimeOne <- function(follower, target, opts) {
   normalization <- calculateNormalization(target)
   targetNormed <- normalization$normalize(target)
   followerNormed <- normalization$normalize(follower)
+  n <- nrow(follower)
   dst <- rep(NA_real_, n)
   lastValidIdx <- which(rowSums(is.na(follower)) > 0)[1]
-  if (is.na(lastValidIdx)) lastValidIdx <- nrow(follower)
+  if (is.na(lastValidIdx)) lastValidIdx <- n
   sel <- 1:lastValidIdx
   dst[sel] <- DEEButil::minDistTimeState(
     followerNormed$state[sel,, drop=FALSE],
