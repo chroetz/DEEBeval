@@ -4,7 +4,6 @@ scoreFollowTime <- function(follower, target, opts, info) {
     warning("unequal time -> interpolating", immediate. = TRUE)
     follower <- DEEBtrajs::interpolateTrajs(follower, targetTimes = target$time)
   }
-  if (any(is.na(follower$state)) || any(is.na(target$state))) return(NA)
   res <- apply2TrajId(follower, target, scoreFollowTimeOne, opts=opts)
   appendToEnv(info, list(followTime = res))
   total <- sum(sapply(res, \(x) x$score))
@@ -15,10 +14,18 @@ scoreFollowTimeOne <- function(follower, target, opts) {
   normalization <- calculateNormalization(target)
   targetNormed <- normalization$normalize(target)
   followerNormed <- normalization$normalize(follower)
-  dst <- DEEButil::minDistTimeState(followerNormed$state, targetNormed$state, target$time, opts$timeScale)
+  dst <- rep(NA_real_, n)
+  lastValidIdx <- which(rowSums(is.na(follower)) > 0)[1]
+  if (is.na(lastValidIdx)) lastValidIdx <- nrow(follower)
+  sel <- 1:lastValidIdx
+  dst[sel] <- DEEButil::minDistTimeState(
+    followerNormed$state[sel,, drop=FALSE],
+    targetNormed$state[sel,, drop=FALSE],
+    target$time[sel],
+    opts$timeScale)
   iLoss <- which(dst > opts$radius)[1]
   if (is.na(iLoss)) {
-    tm <- max(target$time)
+    tm <- target$time[lastValidIdx]
   } else {
     tm <- target$time[iLoss]
   }

@@ -4,7 +4,6 @@ scoreValidTime <- function(follower, target, opts, info) {
     warning("unequal time -> interpolating", immediate. = TRUE)
     follower <- DEEBtrajs::interpolateTrajs(follower, targetTimes = target$time)
   }
-  if (any(is.na(follower$state)) || any(is.na(target$state))) return(NA)
   res <- apply2TrajId(follower, target, scoreValidTimeOne, opts=opts)
   appendToEnv(info, list(validTime = res))
   total <- sum(sapply(res, \(x) x$score))
