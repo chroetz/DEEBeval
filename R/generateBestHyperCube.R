@@ -1,5 +1,5 @@
 #' @export
-generateBestHyperCube <- function(dbPath, timeInMinutes = 60) {
+generateBestHyperCube <- function(dbPath) {
 
   bestHyperCubePaths <- getNextFreeBestHyperCubeNumber(dbPath)
   if (!dir.exists(bestHyperCubePaths$dirPath))
@@ -67,8 +67,7 @@ generateBestHyperCube <- function(dbPath, timeInMinutes = 60) {
     group_by(model) |>
     mutate(obs = DEEBpath::getObsNameFromNr(dbPath, model, obsNr)) |>
     ungroup() |>
-    select(model, method, obs) |>
-    mutate(timeInMinutes = .env$timeInMinutes)
+    select(model, method, obs)
 
   write_csv(methodCsv, bestHyperCubePaths$csvFilePath)
 
