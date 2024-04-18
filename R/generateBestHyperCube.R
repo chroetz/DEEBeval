@@ -91,8 +91,8 @@ getFreeFilePath <- function(dirPath, fileName, ending) {
 
 
 getNextFreeBestHyperCubeNumber <- function(dbPath) {
-   basePath <- file.path(dbPath, "_hyper")
-   for (nr in 1:1e4) {
+  basePath <- file.path(dbPath, "_hyper")
+  for (nr in 1:1e4) {
     csvFilePath <- file.path(basePath, paste0("methods_BestCube_", nr, ".csv"))
     dirPath <- file.path(basePath, paste0("methods_BestCube_", nr))
     if (!file.exists(csvFilePath) && !dir.exists(dirPath)) break
@@ -135,10 +135,12 @@ getBestMethod <- function(dbPath, data, model, obsNr, methodBase = NULL) {
 
 getTargetInfo <- function(dbPath, model) {
   targetMethodAndScore <- DEEBpath::getTargetTaskAndScore(dbPath)
-  tnr <- targetMethodAndScore |> filter(model == .env$model) |> pull(taskNr)
-  lss <- targetMethodAndScore |> filter(model == .env$model) |> pull(scoreName)
+  modelTarget <- targetMethodAndScore |> filter(str_detect(.env$model, .data$model))
+  stopifnot(nrow(modelTarget) == 1)
+  tnr <- modelTarget |> pull(taskNr)
+  lss <- modelTarget |> pull(scoreName)
   targetFun <- switch(
-    targetMethodAndScore |> filter(model == .env$model) |> pull(target),
+    modelTarget |> pull(target),
     max = \(x) max(x, na.rm = TRUE),
     min = \(x) min(x, na.rm = TRUE))
   return(list(

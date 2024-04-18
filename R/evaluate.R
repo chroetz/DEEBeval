@@ -56,7 +56,11 @@ evalMetaAndWriteToFile <- function(
 updateScores <- function(old, new) {
   key <- c("method", "truthNr", "obsNr", "taskNr")
   retainRows <- anti_join(old, new, by = key)
-  res <- bind_rows(new, retainRows[names(new)])
+  if (nrow(retainRows) > 0) {
+    res <- bind_rows(new, retainRows[names(new)])
+  } else {
+    res <- new
+  }
   retainColNames <- setdiff(names(old), names(new))
   if (length(retainColNames) > 0) {
     retainCols <- old[c(key, retainColNames)]

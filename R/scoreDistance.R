@@ -17,7 +17,36 @@ scoreDistance <- function(trajs1, trajs2, opts) {
       opts$methodArgs
     )
   )
-  return(mean(dists))
+  if (opts$normalize == "norm") {
+    zero <- matrix(0, nrow = nrow(trajs1$state), ncol = ncol(trajs1$state))
+    d1 <- do.call(
+      proxy::dist,
+      c(
+        list(
+          x = trajs1$state,
+          y = zero,
+          method = opts$method,
+          pairwise = TRUE
+        ),
+        opts$methodArgs
+      )
+    )
+    d2 <- do.call(
+      proxy::dist,
+      c(
+        list(
+          x = trajs2$state,
+          y = zero,
+          method = opts$method,
+          pairwise = TRUE
+        ),
+        opts$methodArgs
+      )
+    )
+    dists <- dists/((d1+d2)/2)
+  }
+  dst <- opts$factor*mean(dists)
+  return(dst)
 }
 
 
