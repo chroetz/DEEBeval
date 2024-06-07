@@ -145,6 +145,7 @@ runEvalTbl <- function(
   }
 
   if (writeScoreHtml) {
+    models <- unique(tbl$model)
     for (model in models) runScoreHtml(dbPath, model)
   }
 

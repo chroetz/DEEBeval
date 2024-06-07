@@ -19,6 +19,7 @@ generateBestHyperCube <- function(dbPath) {
     meta |>
     rowwise() |>
     mutate(bestMethod = getBestMethod(dbPath, data, model, obsNr, methodBase))
+
   bests <-
     res |>
     drop_na() |>
