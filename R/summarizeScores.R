@@ -36,12 +36,12 @@ collectHyper <- function(dbPath) {
     lapply(
       models,
       \(model) {
-        collectHyperOfModel(dbPath, model) |>
+        hyper <- collectHyperOfModel(dbPath, model)
+        if (is.null(hyper)) return(NULL)
+        hyper |>
           mutate(model = model, .before = 1)
       }
-    )
-  res <-
-    res|>
+    ) |>
     bind_rows()
   return(res)
 }
@@ -50,6 +50,7 @@ collectHyper <- function(dbPath) {
 collectHyperOfModel <- function(dbPath, model) {
   paths <- DEEBpath::getPaths(dbPath, model)
   dirNames <- list.files(paths$esti, pattern = "^[^_]", include.dirs=TRUE)
+  if (length(dirNames) == 0) return(NULL)
   files <- tibble(
     dirName = dirNames[sapply(file.path(paths$esti, dirNames), dir.exists)],
     dirFull = normalizePath(file.path(paths$esti, dirName)),
@@ -132,7 +133,9 @@ collectScores <- function(dbPath, aggregationFunction = mean) {
     lapply(
       models,
       \(model) {
-        collectScoresOfModel(dbPath, model, aggregationFunction = mean) |>
+        scores <- collectScoresOfModel(dbPath, model, aggregationFunction = mean)
+        if (is.null(scores)) return(NULL)
+        scores |>
           mutate(model = model, .before = 1)
       }
     ) |>
@@ -155,6 +158,7 @@ collectScoresOfModel <- function(dbPath, model, aggregationFunction = mean) {
     }
   ) |>
     bind_rows()
+  if (nrow(scores) == 0) return(NULL)
   tbl <-
     scores |>
     mutate(
