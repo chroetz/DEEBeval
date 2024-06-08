@@ -72,7 +72,7 @@ generateBestHyperCube <- function(dbPath) {
 
   write_csv(methodCsv, bestHyperCubePaths$csvFilePath)
 
-  cat("Created:", outFile$filePath, "\n")
+  cat("Created:", bestHyperCubePaths$csvFilePath, "\n")
   return(invisible())
 }
 

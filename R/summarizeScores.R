@@ -121,8 +121,11 @@ asString <- function(x) {
 }
 
 allSame <- function(lst) {
-  reduced <- Reduce(\(x, y) if (identical(x,y)) x else NULL, lst)
-  return(!is.null(reduced))
+  x <- lst[[1]]
+  for (y in lst[-1]) {
+    if (!identical(x, y)) return(FALSE)
+  }
+  return(TRUE)
 }
 
 
