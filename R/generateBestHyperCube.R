@@ -5,32 +5,14 @@ generateBestHyperCube <- function(dbPath) {
   if (!dir.exists(bestHyperCubePaths$dirPath))
     dir.create(bestHyperCubePaths$dirPath, recursive=TRUE)
 
-  data <-
-    read_csv(DEEBpath::summaryTablePath(dbPath), col_types = readr::cols()) |>
-    filter(!is.na(hash))
-
-  meta <-
-    data |>
-    select(model, obsNr, methodBase) |>
-    distinct() |>
-    drop_na()
-
-  res <-
-    meta |>
-    rowwise() |>
-    mutate(bestMethod = getBestMethod(dbPath, data, model, obsNr, methodBase))
-
-  bests <-
-    res |>
-    drop_na() |>
-    mutate(filePath = DEEBpath::getRanMethodOptsPath(dbPath, model, bestMethod))
+  bests <- getBests(dbPath, onlyHashed = TRUE)
 
   bests$bestCubePath <- NA_character_
   bests$nr <- NA_real_
   for (i in seq_len(nrow(bests))) {
     info <- bests[i, ]
     filePath <- list.files(
-      path = file.path(dbPath, "_hyper"),
+      path = DEEBpath::hyperDir(dbPath),
       pattern = paste0("^", info$methodBase),
       full.names = TRUE)[1]
     if (is.na(filePath)) {
@@ -92,7 +74,7 @@ getFreeFilePath <- function(dirPath, fileName, ending) {
 
 
 getNextFreeBestHyperCubeNumber <- function(dbPath) {
-  basePath <- file.path(dbPath, "_hyper")
+  basePath <- DEEBpath::hyperDir(dbPath)
   for (nr in 1:1e4) {
     csvFilePath <- file.path(basePath, paste0("methods_BestCube_", nr, ".csv"))
     dirPath <- file.path(basePath, paste0("methods_BestCube_", nr))

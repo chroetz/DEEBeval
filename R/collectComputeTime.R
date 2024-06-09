@@ -28,7 +28,7 @@ writeComputeTime <- function(dbPath) {
 
   durations <- collectComputeTime(dbPath)
 
-  filePath <- file.path(dbPath, "_hyper", "durations.csv")
+  filePath <- file.path(DEEBpath::hyperDir(dbPath), "durations.csv")
 
   cat("Writing durations to", filePath, "\n")
   write_csv(durations, file = filePath)
