@@ -1,11 +1,11 @@
 #' @export
-generateBestHyperCube <- function(dbPath) {
+generateBestHyperCube <- function(dbPath, methods=NULL) {
 
   bestHyperCubePaths <- getNextFreeBestHyperCubeNumber(dbPath)
   if (!dir.exists(bestHyperCubePaths$dirPath))
     dir.create(bestHyperCubePaths$dirPath, recursive=TRUE)
 
-  bests <- getBests(dbPath, onlyHashed = TRUE)
+  bests <- getBests(dbPath, onlyHashed = TRUE, methods)
 
   bests$bestCubePath <- NA_character_
   bests$nr <- NA_real_
@@ -13,7 +13,7 @@ generateBestHyperCube <- function(dbPath) {
     info <- bests[i, ]
     filePath <- list.files(
       path = DEEBpath::hyperDir(dbPath),
-      pattern = paste0("^", info$methodBase),
+      pattern = paste0("^", info$methodBase, "\\.json$"),
       full.names = TRUE)[1]
     if (is.na(filePath)) {
       cat("Did not find base file for", info$methodBase, "\n")

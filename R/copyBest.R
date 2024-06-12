@@ -26,13 +26,17 @@ copyBest <- function(fromDbPath, toDbPath) {
 }
 
 
-getBests <- function(dbPath, onlyHashed = TRUE) {
+getBests <- function(dbPath, onlyHashed = TRUE, methodFilter = NULL) {
 
   data <-
     DEEBpath::summaryTablePath(dbPath) |>
     read_csv(col_types = readr::cols()) |>
     filter(methodFull != "Truth")
   if (onlyHashed) data <- data |> filter(!is.na(hash))
+
+  if (!is.null(methodFilter)) {
+    data <- data |> filter(methodBase %in% methodFilter)
+  }
 
   meta <-
     data |>
