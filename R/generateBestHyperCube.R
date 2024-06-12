@@ -132,6 +132,7 @@ getTargetInfo <- function(dbPath, model) {
     fun = targetFun))
 }
 
+
 .getMethodOptsOne <- function(methodOpts, model, methodBase) {
 
   methodOptsOne <-
