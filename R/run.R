@@ -11,6 +11,7 @@ runEval <- function(
   verbose = FALSE,
   onlyNew = FALSE,
   writeScoreHtml = TRUE,
+  createSummary = TRUE,
   onlySummarizeScore = FALSE
 ) {
 
@@ -85,6 +86,7 @@ runEvalTbl <- function(
     createPlots = TRUE,
     verbose = FALSE,
     writeScoreHtml = TRUE,
+    createSummary = TRUE,
     onlySummarizeScore = FALSE
 ) {
 
