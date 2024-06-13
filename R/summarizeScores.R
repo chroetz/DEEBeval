@@ -6,29 +6,41 @@ createSummary <- function(dbPath = ".", collectScores = TRUE, collectHyper = TRU
 
   summaryDir <- DEEBpath::summaryDir(dbPath)
   if (collectScores) {
+    ptThis <- proc.time()
+    cat("Collect Scores...")
     scores <- collectScores(dbPath)
     if (!dir.exists(summaryDir)) dir.create(summaryDir)
     readr::write_csv(scores, DEEBpath::summaryTablePath(dbPath))
+    cat("took", (proc.time()-ptThis)[3], "s\n")
   }
   if (collectHyper) {
+    ptThis <- proc.time()
+    cat("Collect Hyper...")
     hyperOpts <- collectHyper(dbPath)
     if (!dir.exists(summaryDir)) dir.create(summaryDir)
     for (i in seq_len(nrow(hyperOpts))) {
       info <- hyperOpts[i,]
       readr::write_csv(info$opts[[1]], DEEBpath::summaryHyperPath(dbPath, info$model, info$methodBase))
     }
+    cat("took", (proc.time()-ptThis)[3], "s\n")
   }
   if (renderSummary) {
+    ptThis <- proc.time()
+    cat("Render Summary...\n")
     writeDoc(
       summaryDir,
       "summary",
       dbPath = normalizePath(dbPath, mustWork=TRUE))
+    cat("... took", (proc.time()-ptThis)[3], "s\n")
   }
   if (renderHyper) {
+    ptThis <- proc.time()
+    cat("Render Hyper...\n")
     writeDoc(
       summaryDir,
       "summaryHyper",
       dbPath = normalizePath(dbPath, mustWork=TRUE))
+    cat("... took", (proc.time()-ptThis)[3], "s\n")
   }
 
   cat(" done after", format((proc.time()-pt)[3]), "s\n")
