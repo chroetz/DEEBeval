@@ -11,8 +11,7 @@ runEval <- function(
   verbose = FALSE,
   onlyNew = FALSE,
   writeScoreHtml = TRUE,
-  createSummary = FALSE,
-  renderSummary = createSummary
+  onlySummarizeScore = FALSE
 ) {
 
   for (model in models) {
@@ -69,7 +68,12 @@ runEval <- function(
     for (model in models) runScoreHtml(dbPath, model)
   }
 
-  if (createSummary) createSummary(dbPath, renderSummary=renderSummary, renderHyper=renderSummary)
+  if (createSummary) createSummary(
+    dbPath,
+    collectScores = TRUE,
+    collectHyper = !onlySummarizeScore,
+    renderSummary = !onlySummarizeScore,
+    renderHyper = !onlySummarizeScore)
 }
 
 
@@ -81,8 +85,7 @@ runEvalTbl <- function(
     createPlots = TRUE,
     verbose = FALSE,
     writeScoreHtml = TRUE,
-    createSummary = FALSE,
-    renderSummary = createSummary
+    onlySummarizeScore = FALSE
 ) {
 
   tblModelMethod <-
@@ -151,7 +154,12 @@ runEvalTbl <- function(
     for (model in models) runScoreHtml(dbPath, model)
   }
 
-  if (createSummary) createSummary(dbPath, renderSummary=renderSummary, renderHyper=renderSummary)
+  if (createSummary) createSummary(
+    dbPath,
+    collectScores = TRUE,
+    collectHyper = !onlySummarizeScore,
+    renderSummary = !onlySummarizeScore,
+    renderHyper = !onlySummarizeScore)
 }
 
 
