@@ -1,5 +1,5 @@
 #' @export
-createSummary <- function(dbPath = ".", collectScores = TRUE, collectHyper = TRUE) {
+createSummary <- function(dbPath = ".", collectScores = TRUE, collectHyper = TRUE, renderSummary = TRUE, renderHyper = TRUE) {
 
   cat("Writing Summary...")
   pt <- proc.time()
@@ -18,14 +18,18 @@ createSummary <- function(dbPath = ".", collectScores = TRUE, collectHyper = TRU
       readr::write_csv(info$opts[[1]], DEEBpath::summaryHyperPath(dbPath, info$model, info$methodBase))
     }
   }
-  writeDoc(
-    summaryDir,
-    "summary",
-    dbPath = normalizePath(dbPath, mustWork=TRUE))
-  writeDoc(
-    summaryDir,
-    "summaryHyper",
-    dbPath = normalizePath(dbPath, mustWork=TRUE))
+  if (renderSummary) {
+    writeDoc(
+      summaryDir,
+      "summary",
+      dbPath = normalizePath(dbPath, mustWork=TRUE))
+  }
+  if (renderHyper) {
+    writeDoc(
+      summaryDir,
+      "summaryHyper",
+      dbPath = normalizePath(dbPath, mustWork=TRUE))
+  }
 
   cat(" done after", format((proc.time()-pt)[3]), "s\n")
 }
