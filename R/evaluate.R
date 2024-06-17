@@ -39,7 +39,7 @@ evalMetaAndWriteToFile <- function(
         oldScores <- readr::read_csv(scoresOutFile, col_types = readr::cols())
         taskScoreTbl <- updateScores(oldScores, taskScoreTbl)
       }
-      readr::write_csv(taskScoreTbl, scoresOutFile)
+      write_csv(taskScoreTbl, scoresOutFile, progress = FALSE)
       scoresOutFile
     })
 

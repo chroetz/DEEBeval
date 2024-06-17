@@ -10,7 +10,7 @@ createSummary <- function(dbPath = ".", collectScores = TRUE, collectHyper = TRU
     cat("Collect Scores...")
     scores <- collectScores(dbPath)
     if (!dir.exists(summaryDir)) dir.create(summaryDir)
-    readr::write_csv(scores, DEEBpath::summaryTablePath(dbPath))
+    write_csv(scores, DEEBpath::summaryTablePath(dbPath), progress = FALSE)
     cat("took", (proc.time()-ptThis)[3], "s\n")
   }
   if (collectHyper) {
@@ -20,7 +20,7 @@ createSummary <- function(dbPath = ".", collectScores = TRUE, collectHyper = TRU
     if (!dir.exists(summaryDir)) dir.create(summaryDir)
     for (i in seq_len(nrow(hyperOpts))) {
       info <- hyperOpts[i,]
-      readr::write_csv(info$opts[[1]], DEEBpath::summaryHyperPath(dbPath, info$model, info$methodBase))
+      write_csv(info$opts[[1]], DEEBpath::summaryHyperPath(dbPath, info$model, info$methodBase), progress = FALSE)
     }
     cat("took", (proc.time()-ptThis)[3], "s\n")
   }
@@ -45,6 +45,31 @@ createSummary <- function(dbPath = ".", collectScores = TRUE, collectHyper = TRU
 
   cat(" done after", format((proc.time()-pt)[3]), "s\n")
 }
+
+
+#' @export
+collectAutoScores <- function(dbPath, tblModelMethod) {
+
+  cat("collect scores auto...")
+  pt <- proc.time()
+
+  summaryDir <- DEEBpath::summaryDir(dbPath)
+
+  scores <- collectScores(dbPath, tblModelMethod = tblModelMethod)
+  if (!dir.exists(summaryDir)) dir.create(summaryDir)
+  if (file.exists(DEEBpath::summaryTablePath(dbPath))) {
+    scoresOld <- readr::read_csv(DEEBpath::summaryTablePath(dbPath))
+  } else {
+    scoresOld <- NULL
+  }
+  write_csv(
+    bind_rows(scoresOld, scores) |> distinct(),
+    DEEBpath::summaryTablePath(dbPath),
+    progress = FALSE)
+
+  cat(" done after", format((proc.time()-pt)[3]), "s\n")
+}
+
 
 collectHyper <- function(dbPath) {
   models <- DEEBpath::getModels(dbPath)
@@ -146,13 +171,17 @@ allSame <- function(lst) {
 
 
 
-collectScores <- function(dbPath, aggregationFunction = mean) {
-  models <- DEEBpath::getModels(dbPath)
+collectScores <- function(dbPath, aggregationFunction = mean, tblModelMethod = NULL) {
+  if (hasValue(tblModelMethod)) {
+    models <- tblModelMethod$model |> unique()
+  } else {
+    models <- DEEBpath::getModels(dbPath)
+  }
   res <-
     lapply(
       models,
       \(model) {
-        scores <- collectScoresOfModel(dbPath, model, aggregationFunction = mean)
+        scores <- collectScoresOfModel(dbPath, model, aggregationFunction = mean, tblModelMethod = tblModelMethod)
         if (is.null(scores)) return(NULL)
         scores |>
           mutate(model = model, .before = 1)
@@ -163,10 +192,15 @@ collectScores <- function(dbPath, aggregationFunction = mean) {
 }
 
 
-collectScoresOfModel <- function(dbPath, model, aggregationFunction = mean) {
+collectScoresOfModel <- function(dbPath, model, aggregationFunction = mean, tblModelMethod = NULL) {
   paths <- DEEBpath::getPaths(dbPath, model)
-  scoreTablePattern <- "^task(\\d{2})(.+)_eval\\.csv$"
+  scoreTablePattern <- "^task(\\d{2})(.+)_eval\\.csv$" # TODO: move to DEEBpath
   fileNames <- list.files(paths$eval, pattern = scoreTablePattern)
+  if (hasValue(tblModelMethod)) {
+    methodNames <- str_extract(fileNames, scoreTablePattern, group = 2)
+    methods <- tblModelMethod |> filter(.data$model == .env$model) |> pull(method) |> unique()
+    fileNames <- fileNames[methodNames %in% methods]
+  }
   scores <- lapply(
     fileNames,
     \(flnm) {

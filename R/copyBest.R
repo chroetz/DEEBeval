@@ -2,6 +2,10 @@
 copyBest <- function(fromDbPath, toDbPath) {
 
   bests <- getBests(fromDbPath, onlyHashed = FALSE)
+  if (NROW(bests) == 0) {
+    cat("Was not able to collect any best method.\n")
+    return(NULL)
+  }
 
   if (!dir.exists(DEEBpath::hyperDir(toDbPath))) dir.create(DEEBpath::hyperDir(toDbPath))
 
@@ -17,16 +21,16 @@ copyBest <- function(fromDbPath, toDbPath) {
 
   cat("Copied", nFilesCopied, "out of", nrow(bests), "files.\n")
 
-  bestMethodCsv <- bests |> select(model, bestMethod, obsNr) |> rename(obs = obsNr, method = bestMethod)
+  bestMethodCsv <- bests |> select(model, bestMethod, obsNr) |> rename(obs = obsNr, methodFile = bestMethod)
   outFilePath <- file.path(DEEBpath::hyperDir(toDbPath), "methods_Best.csv")
-  write_csv(bestMethodCsv, outFilePath)
+  write_csv(bestMethodCsv, outFilePath, progress = FALSE)
   cat("Created", outFilePath, "\n")
 
   return(invisible())
 }
 
 
-getBests <- function(dbPath, onlyHashed = TRUE, methodFilter = NULL) {
+getBests <- function(dbPath, onlyHashed = TRUE, methodTable = NULL) {
 
   data <-
     DEEBpath::summaryTablePath(dbPath) |>
@@ -34,8 +38,8 @@ getBests <- function(dbPath, onlyHashed = TRUE, methodFilter = NULL) {
     filter(methodFull != "Truth")
   if (onlyHashed) data <- data |> filter(!is.na(hash))
 
-  if (!is.null(methodFilter)) {
-    data <- data |> filter(methodBase %in% methodFilter)
+  if (hasValue(methodTable)) {
+    data <- data |> semi_join(methodTable, join_by("methodBase" == "methodBaseFile", "model"))
   }
 
   meta <-
@@ -43,6 +47,8 @@ getBests <- function(dbPath, onlyHashed = TRUE, methodFilter = NULL) {
     select(model, obsNr, methodBase) |>
     distinct() |>
     drop_na()
+
+  if (NROW(meta) == 0) return(NULL)
 
   res <-
     meta |>

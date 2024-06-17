@@ -81,7 +81,7 @@ runEval <- function(
 #' @export
 runEvalTbl <- function(
     dbPath,
-    tbl, # use getUnevaled() to get a suitable tibble with columns c("truthNr", "obsNr", "taskNr", "method", "model")
+    tbl, # a suitable tibble with columns c("truthNr", "obsNr", "taskNr", "method", "model")
     scoreFilter = NULL,
     createPlots = TRUE,
     verbose = FALSE,
@@ -90,78 +90,87 @@ runEvalTbl <- function(
     onlySummarizeScore = FALSE
 ) {
 
-  tblModelMethod <-
-    tbl |>
-    select(model, method) |>
-    distinct() |>
-    arrange(model, method)
+  if (NROW(tbl) > 0) {
 
-  # TODO: remove code duplications with runEval()
+    tblModelMethod <-
+      tbl |>
+      select(model, method) |>
+      distinct() |>
+      arrange(model, method)
 
-  for (i in seq_len(nrow(tblModelMethod))) {
-    model <- tblModelMethod$model[i]
-    method <- tblModelMethod$method[i]
-    cat(model, method)
-    pt <- proc.time()
-    path <- DEEBpath::getPaths(dbPath, model)
+    # TODO: remove code duplications with runEval()
 
-    methodEstiPath <- file.path(path$esti, method)
-    if (!dir.exists(methodEstiPath)) {
-      cat(" methodEstiPath does not exist:", methodEstiPath,"\n")
-      next
+    for (i in seq_len(nrow(tblModelMethod))) {
+      model <- tblModelMethod$model[i]
+      method <- tblModelMethod$method[i]
+      cat(model, method)
+      pt <- proc.time()
+      path <- DEEBpath::getPaths(dbPath, model)
+
+      methodEstiPath <- file.path(path$esti, method)
+      if (!dir.exists(methodEstiPath)) {
+        cat(" methodEstiPath does not exist:", methodEstiPath,"\n")
+        next
+      }
+      meta <-
+        DEEBpath::getMetaGeneric(
+          c(path$truth, path$obs, methodEstiPath, path$task),
+          tagFileFilter = list(
+            c("truth", "obs", "task", "esti"),
+            c("task", "truth"),
+            "task"),
+          removeNa = TRUE)
+      if (length(meta) == 0) {
+        cat(" no files found\n")
+        next
+      }
+      filteredTbl <-
+        tbl |> filter(
+          .data$method == .env$method,
+          .data$model == .env$model)
+      if (NROW(meta) == 0 || NROW(tbl) == 0) {
+        cat(" nothing at all to evaluate\n")
+        next
+      }
+      meta <-
+        meta |>
+        semi_join(
+          filteredTbl,
+          by = c("truthNr", "obsNr", "taskNr"))
+      if (nrow(meta) == 0) {
+        cat(" nothing to evaluate\n")
+        next
+      }
+      evalMetaAndWriteToFile(
+        meta,
+        path$eval,
+        path$plots,
+        method,
+        createPlots = createPlots,
+        scoreFilter = scoreFilter,
+        verbose = verbose)
+      if (createPlots) createExtraPlots(path, method)
+      cat(" took ", format((proc.time()-pt)[3]), "s\n", sep="")
     }
-    meta <-
-      DEEBpath::getMetaGeneric(
-        c(path$truth, path$obs, methodEstiPath, path$task),
-        tagFileFilter = list(
-          c("truth", "obs", "task", "esti"),
-          c("task", "truth"),
-          "task"),
-        removeNa = TRUE)
-    if (length(meta) == 0) {
-      cat(" no files found\n")
-      next
+
+    if (writeScoreHtml) {
+      models <- unique(tbl$model)
+      for (model in models) runScoreHtml(dbPath, model)
     }
-    filteredTbl <-
-      tbl |> filter(
-        .data$method == .env$method,
-        .data$model == .env$model)
-    if (NROW(meta) == 0 || NROW(tbl) == 0) {
-      cat(" nothing at all to evaluate\n")
-      next
+
+    if (onlySummarizeScore) {
+      collectAutoScores(dbPath, tblModelMethod)
     }
-    meta <-
-      meta |>
-      semi_join(
-        filteredTbl,
-        by = c("truthNr", "obsNr", "taskNr"))
-    if (nrow(meta) == 0) {
-      cat(" nothing to evaluate\n")
-      next
-    }
-    evalMetaAndWriteToFile(
-      meta,
-      path$eval,
-      path$plots,
-      method,
-      createPlots = createPlots,
-      scoreFilter = scoreFilter,
-      verbose = verbose)
-    if (createPlots) createExtraPlots(path, method)
-    cat(" took ", format((proc.time()-pt)[3]), "s\n", sep="")
   }
 
-  if (writeScoreHtml) {
-    models <- unique(tbl$model)
-    for (model in models) runScoreHtml(dbPath, model)
-  }
+  if (createSummary)
+    createSummary(
+      dbPath,
+      collectScores = TRUE,
+      collectHyper = TRUE,
+      renderSummary = TRUE,
+      renderHyper = TRUE)
 
-  if (createSummary) createSummary(
-    dbPath,
-    collectScores = TRUE,
-    collectHyper = !onlySummarizeScore,
-    renderSummary = !onlySummarizeScore,
-    renderHyper = !onlySummarizeScore)
 }
 
 
