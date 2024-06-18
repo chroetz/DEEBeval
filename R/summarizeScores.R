@@ -58,7 +58,7 @@ collectAutoScores <- function(dbPath, tblModelMethod) {
   scores <- collectScores(dbPath, tblModelMethod = tblModelMethod)
   if (!dir.exists(summaryDir)) dir.create(summaryDir)
   if (file.exists(DEEBpath::summaryTablePath(dbPath))) {
-    scoresOld <- readr::read_csv(DEEBpath::summaryTablePath(dbPath))
+    scoresOld <- readr::read_csv(DEEBpath::summaryTablePath(dbPath), col_types = readr::cols())
   } else {
     scoresOld <- NULL
   }
