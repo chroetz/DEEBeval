@@ -1,4 +1,4 @@
-scoreDistance <- function(trajs1, trajs2, opts) {
+scoreDistance <- function(trajs1, trajs2, opts, aggregateFun = mean) {
   opts <- asOpts(opts, c("Distance", "TimeState", "Score"))
   if (!isTimeEqual(trajs1, trajs2)) {
     warning("unequal time -> interpolating", immediate. = TRUE)
@@ -45,7 +45,7 @@ scoreDistance <- function(trajs1, trajs2, opts) {
     )
     dists <- dists/((d1+d2)/2)
   }
-  dst <- opts$factor*mean(dists)
+  dst <- opts$factor*aggregateFun(dists)
   return(dst)
 }
 
