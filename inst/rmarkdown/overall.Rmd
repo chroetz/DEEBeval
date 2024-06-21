@@ -84,7 +84,8 @@ for (scoreName in scoreNames) {
       taskData <- 
         filter(obsData, taskNr == tnr) |> 
         select(method, meanScore, medianScore, meanRank, medianRank, nNAs) |> 
-        arrange(meanScore)
+        arrange(medianRank) |> 
+        rowid_to_column("Nr")
       cat("\n\n")
       cat(
         showTable(

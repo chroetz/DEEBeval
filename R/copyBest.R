@@ -57,11 +57,13 @@ getBests <- function(dbPath, onlyHashed = TRUE, methodTable = NULL) {
   res <-
     meta |>
     rowwise() |>
-    mutate(bestMethod = getBestMethod(dbPath, data, model, obsNr, methodBase))
+    mutate(bestMethod = getBestMethod(dbPath, data, model, obsNr, methodBase)) |>
+    drop_na()
+
+  if (NROW(res) == 0) return(NULL)
 
   bests <-
     res |>
-    drop_na() |>
     rowwise() |>
     mutate(filePath = DEEBpath::getRanMethodOptsPath(dbPath, model, bestMethod)) |>
     ungroup()
