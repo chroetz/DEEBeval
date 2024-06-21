@@ -1,0 +1,99 @@
+---
+title: "DEEB Evaluation Overall"
+date: "`r format(Sys.Date())`"
+output: 
+  html_document:
+    toc: yes
+    toc_float: no
+    toc_depth: 1
+    number_sections: no
+params:
+  dbPath: "."
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, error = TRUE)
+library(dplyr)
+library(purrr)
+library(readr)
+library(tibble)
+library(stringr)
+```
+
+```{r, include=FALSE}
+data <- read_csv(DEEBpath::summaryTablePath(params$dbPath), col_types = cols())
+```
+
+```{r}
+showTable <- function(d, caption) {
+  if (NROW(d) == 0) return(paste0(caption, ": no data"))
+  dText <- d
+  for (colname in c("meanScore", "medianScore")) {
+    dText[[colname]] <- sprintf("%.3f", dText[[colname]])
+  }
+  for (colname in c("meanRank", "medianRank")) {
+    dText[[colname]] <- sprintf("%.1f", dText[[colname]])
+  }
+  tbl <- 
+    dText |> 
+    kableExtra::kbl(
+      caption = caption,
+      booktabs = TRUE,
+      align = c("l", rep("r", ncol(dText) - 1))
+    ) |> 
+    kableExtra::kable_styling(
+      bootstrap_options = c("condensed"),
+      latex_options = c("HOLD_position"),
+      full_width = FALSE) 
+  return(tbl)
+}
+```
+
+```{r}
+data <- 
+  data |> 
+  group_by(model, obsNr, taskNr, scoreName) |> 
+  mutate(rank = rank(scoreValue, na.last = TRUE, ties.method = "average")) |> 
+  ungroup() |> 
+  mutate(methodNoHash = str_remove_all(methodBase, "(_[0-9a-f]{32})+$"))
+dataSumm <- 
+  data |> 
+  summarize(
+    meanScore = mean(scoreValue, na.rm=TRUE), 
+    medianScore = median(scoreValue, na.rm=TRUE), 
+    nNAs = sum(is.na(scoreValue)), 
+    meanRank = mean(rank),
+    medianRank = median(rank),
+    .by=c(methodNoHash, obsNr, taskNr, scoreName)) |> 
+  select(scoreName, obsNr, taskNr, methodNoHash, meanScore, medianScore, meanRank, medianRank, nNAs) |> 
+  rename(method = methodNoHash)
+
+scoreNames <- data$scoreName |> unique()
+```
+
+
+```{r results='asis'}
+for (scoreName in scoreNames) {
+  cat("# Score", scoreName, "{.tabset}\n")
+  scoreData <- dataSumm |> filter(.data$scoreName == .env$scoreName)
+  for (onr in unique(scoreData$obsNr)) {
+    cat("## Obs", onr, "{.tabset}\n")
+    obsData <- filter(scoreData, obsNr == onr)
+    for (tnr in unique(obsData$taskNr)) {
+      cat("### Task", tnr, " {.tabset}\n")
+      taskData <- 
+        filter(obsData, taskNr == tnr) |> 
+        select(method, meanScore, medianScore, meanRank, medianRank, nNAs) |> 
+        arrange(meanScore)
+      cat("\n\n")
+      cat(
+        showTable(
+          taskData, 
+          paste0("Score ", scoreName, ", obs ", onr, ", Task ", tnr)))
+      cat("\n\n")
+    }
+  }
+}
+```
+
+

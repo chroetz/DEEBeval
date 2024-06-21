@@ -1,4 +1,16 @@
 #' @export
+createOverall <- function(dbPath = ".") {
+  ptThis <- proc.time()
+  cat("Render Hyper...\n")
+  writeDoc(
+    DEEBpath::summaryDir(dbPath),
+    "overall",
+    dbPath = normalizePath(dbPath, mustWork=TRUE))
+  cat("... took", (proc.time()-ptThis)[3], "s\n")
+}
+
+
+#' @export
 createSummary <- function(dbPath = ".", collectScores = TRUE, collectHyper = TRUE, renderSummary = TRUE, renderHyper = TRUE) {
 
   cat("Writing Summary...")

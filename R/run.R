@@ -163,13 +163,12 @@ runEvalTbl <- function(
     }
   }
 
-  if (createSummary)
-    createSummary(
-      dbPath,
-      collectScores = TRUE,
-      collectHyper = TRUE,
-      renderSummary = TRUE,
-      renderHyper = TRUE)
+  if (createSummary) createSummary(
+    dbPath,
+    collectScores = TRUE,
+    collectHyper = !onlySummarizeScore,
+    renderSummary = !onlySummarizeScore,
+    renderHyper = !onlySummarizeScore)
 
 }
 

@@ -74,30 +74,3 @@ for (mdl in unique(data$model)) {
   }
 }
 ```
-
-```{r, include=FALSE}
-nColors <- 256
-bkgndCols <- colorRampPalette(c(
-  rgb(0.5,1,0.5),
-  rgb(1,1,0.5),
-  rgb(1,0.5,0.5)))(nColors)
-
-lossColor <- function(score) {
-  score <- pmin(1, score)
-  i <- 1 + floor((1-score)*nColors)
-  colors <- bkgndCols[i]
-  colors[score <= 0] <- rgb(1,0.5,1)
-  colors[is.na(colors)] <- rgb(0.6,0.6,0.6)
-  colors
-}
-
-colorizeTable <- function(k, colorCols, lossTbl) {
-  for (colId in colorCols) {
-    k <- kableExtra::column_spec(
-      k, 
-      colId,
-      background = lossColor(lossTbl[[colId]]))
-  }
-  k
-}
-```

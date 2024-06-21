@@ -3,6 +3,7 @@
 export(collectAutoScores)
 export(collectComputeTime)
 export(copyBest)
+export(createOverall)
 export(createSummary)
 export(generateBestHyperCube)
 export(getMethodOpts)
