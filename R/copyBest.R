@@ -12,23 +12,20 @@ copyBest <- function(fromDbPath, toDbPath) {
   nFilesCopied <- 0
   for (i in seq_len(nrow(bests))) {
     info <- bests[i,] |> as.list()
-    targetPath <- file.path(DEEBpath::hyperDir(toDbPath), paste0(info$methodBase, ".json"))
+    targetPath <- file.path(DEEBpath::hyperDir(toDbPath), paste0(info$bestMethod, ".json"))
     ok <- file.copy(
       from = info$filePath,
       to = targetPath,
       overwrite = TRUE)
     if (ok) nFilesCopied <- nFilesCopied + 1
-    opts <- ConfigOpts::readOptsBare(targetPath)
-    opts$name <- ""
-    ConfigOpts::writeOpts(opts, targetPath, validate=FALSE)
   }
 
   cat("Copied", nFilesCopied, "out of", nrow(bests), "files.\n")
 
   bestMethodCsv <-
     bests |>
-    select(model, methodBase, obsNr) |>
-    rename(obs = obsNr, methodFile = methodBase)
+    select(model, bestMethod, obsNr) |>
+    rename(obs = obsNr, methodFile = bestMethod)
   outFilePath <- file.path(DEEBpath::hyperDir(toDbPath), "methods_Best.csv")
   write_csv(bestMethodCsv, outFilePath, progress = FALSE)
   cat("Created", outFilePath, "\n")
