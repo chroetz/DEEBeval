@@ -51,11 +51,12 @@ showTable <- function(d, caption) {
 
 ```{r}
 data <- 
-  data |> 
+  data  |> 
+  mutate(method = str_remove_all(methodBase, "(_[0-9a-f]{32})+$")) |> 
+  tidyr::complete(method, model, obsNr, taskNr, scoreName) |> 
   group_by(model, obsNr, taskNr, scoreName) |> 
   mutate(rank = rank(scoreValue, na.last = TRUE, ties.method = "average")) |> 
-  ungroup() |> 
-  mutate(methodNoHash = str_remove_all(methodBase, "(_[0-9a-f]{32})+$"))
+  ungroup()
 dataSumm <- 
   data |> 
   summarize(
@@ -64,9 +65,8 @@ dataSumm <-
     nNAs = sum(is.na(scoreValue)), 
     meanRank = mean(rank),
     medianRank = median(rank),
-    .by=c(methodNoHash, obsNr, taskNr, scoreName)) |> 
-  select(scoreName, obsNr, taskNr, methodNoHash, meanScore, medianScore, meanRank, medianRank, nNAs) |> 
-  rename(method = methodNoHash)
+    .by=c(method, obsNr, taskNr, scoreName)) |> 
+  select(scoreName, obsNr, taskNr, method, meanScore, medianScore, meanRank, medianRank, nNAs)
 
 scoreNames <- data$scoreName |> unique()
 ```

@@ -4,7 +4,6 @@ scoreDistance <- function(trajs1, trajs2, opts, aggregateFun = mean) {
     warning("unequal time -> interpolating", immediate. = TRUE)
     trajs1 <- DEEBtrajs::interpolateTrajs(trajs1, targetTimes = trajs2$time)
   }
-  if (any(is.na(trajs1$state)) || any(is.na(trajs2$state))) return(NA)
   dists <- do.call(
     proxy::dist,
     c(
@@ -44,6 +43,7 @@ scoreDistance <- function(trajs1, trajs2, opts, aggregateFun = mean) {
       )
     )
     dists <- dists/((d1+d2)/2)
+    dists[is.na(dists)] <- 2 # maximum error is 2 if normalized
   }
   dst <- opts$factor*aggregateFun(dists)
   return(dst)
