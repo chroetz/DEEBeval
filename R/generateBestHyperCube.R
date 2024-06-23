@@ -36,9 +36,17 @@ generateBestHyperCube <- function(dbPath, methodTablePath=NULL, autoId=NULL) {
       cat(info$methodBase, "does not have generative elemets. Skipping.\n")
       next
     }
-    optsProto$list <- optsProto$list[1]
     optsBest <- ConfigOpts::readOpts(info$filePath)
-    optsProto$list[[1]] <- ConfigOpts::replaceExpandValues(optsProto$list[[1]], optsBest)
+    found <- FALSE
+    for (iProto in seq_along(optsProto$list)) {
+      proto <- ConfigOpts::asOpts(optsProto$list[[iProto]])
+      if (ConfigOpts::isOfPrototype(optsBest, proto)) {
+        found <- TRUE
+        break
+      }
+    }
+    if (!found) stop(filePath, " did not matching prototype for ", optsBest$name)
+    optsProto$list <- list(ConfigOpts::replaceExpandValues(optsProto$list[[iProto]], optsBest))
 
     outFile <- getFreeFilePath(bestHyperCubePaths$dirPath, info$methodBase, "json")
 
