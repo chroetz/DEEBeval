@@ -11,10 +11,10 @@ generateBestHyperCube <- function(dbPath, methodTablePath=NULL, autoId=NULL) {
   } else {
     methodTable <- NULL
   }
+  browser()
   bests <- getBests(dbPath, onlyHashed = TRUE, methodTable = methodTable)
   if (NROW(bests) == 0) {
-    cat("Was not able to collect any best method.\n")
-    return(NULL)
+    stop("Was not able to collect any best method.\n")
   }
 
   bests$bestCubePath <- NA_character_
