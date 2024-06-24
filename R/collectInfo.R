@@ -21,16 +21,32 @@ collectInfo <- function(dbPath) {
 #' @export
 writeInfo <- function(dbPath) {
 
-  infoTbl <- collectInfo(dbPath)
+  infoTbl <-
+    collectInfo(dbPath) |>
+    mutate(methodBase = DEEBpath::removeHashFromName(method))
   filePath <- file.path(DEEBpath::summaryDir(dbPath), "_info.csv")
   cat("Writing info table to", filePath, "\n")
   write_csv(infoTbl, file = filePath, progress = FALSE)
 
   # TODO: assumes that there is only one task...
 
-  infoSumm <-
+  infoSumm1 <-
     infoTbl |>
-    mutate(methodBase = DEEBpath::removeHashFromName(method)) |>
+    summarize(
+      meanEstiElapsedTime = mean(estiElapsedTime, na.rm=TRUE),
+      meanParmsElapsedTime = mean(parmsElapsedTime, na.rm=TRUE),
+      meanTaskElapsedTimes = mean(taskElapsedTimes, na.rm=TRUE),
+      medianEstiElapsedTime = median(estiElapsedTime, na.rm=TRUE),
+      medianParmsElapsedTime = median(parmsElapsedTime, na.rm=TRUE),
+      medianTaskElapsedTimes = median(taskElapsedTimes, na.rm=TRUE),
+      n = dplyr::n(),
+      .by = c(method, obsNr, model))
+  filePath <- file.path(DEEBpath::summaryDir(dbPath), "_infoSumm1.csv")
+  cat("Writing infoSumm1 table to", filePath, "\n")
+  write_csv(infoSumm1, file = filePath, progress = FALSE)
+
+  infoSumm2 <-
+    infoTbl |>
     summarize(
       meanEstiElapsedTime = mean(estiElapsedTime, na.rm=TRUE),
       meanParmsElapsedTime = mean(parmsElapsedTime, na.rm=TRUE),
@@ -40,13 +56,29 @@ writeInfo <- function(dbPath) {
       medianTaskElapsedTimes = median(taskElapsedTimes, na.rm=TRUE),
       n = dplyr::n(),
       .by = c(methodBase, obsNr, model))
-  filePath <- file.path(DEEBpath::summaryDir(dbPath), "_infoSumm.csv")
-  cat("Writing infoSumm table to", filePath, "\n")
-  write_csv(infoSumm, file = filePath, progress = FALSE)
+  filePath <- file.path(DEEBpath::summaryDir(dbPath), "_infoSumm2.csv")
+  cat("Writing infoSumm2 table to", filePath, "\n")
+  write_csv(infoSumm2, file = filePath, progress = FALSE)
 
-  infoSummSumm <-
+
+  infoSumm3 <-
     infoTbl |>
-    mutate(methodBase = DEEBpath::removeHashFromName(method)) |>
+    summarize(
+      meanEstiElapsedTime = mean(estiElapsedTime, na.rm=TRUE),
+      meanParmsElapsedTime = mean(parmsElapsedTime, na.rm=TRUE),
+      meanTaskElapsedTimes = mean(taskElapsedTimes, na.rm=TRUE),
+      medianEstiElapsedTime = median(estiElapsedTime, na.rm=TRUE),
+      medianParmsElapsedTime = median(parmsElapsedTime, na.rm=TRUE),
+      medianTaskElapsedTimes = median(taskElapsedTimes, na.rm=TRUE),
+      n = dplyr::n(),
+      .by = c(methodBase, model))
+  filePath <- file.path(DEEBpath::summaryDir(dbPath), "_infoSumm3.csv")
+  cat("Writing infoSumm3 table to", filePath, "\n")
+  write_csv(infoSumm3, file = filePath, progress = FALSE)
+
+
+  infoSumm4 <-
+    infoTbl |>
     summarize(
       meanEstiElapsedTime = mean(estiElapsedTime, na.rm=TRUE),
       meanParmsElapsedTime = mean(parmsElapsedTime, na.rm=TRUE),
@@ -56,13 +88,12 @@ writeInfo <- function(dbPath) {
       medianTaskElapsedTimes = median(taskElapsedTimes, na.rm=TRUE),
       n = dplyr::n(),
       .by = c(methodBase, obsNr))
-  filePath <- file.path(DEEBpath::summaryDir(dbPath), "_infoSummSumm.csv")
-  cat("Writing infoSummSumm table to", filePath, "\n")
-  write_csv(infoSummSumm, file = filePath, progress = FALSE)
+  filePath <- file.path(DEEBpath::summaryDir(dbPath), "_infoSumm4.csv")
+  cat("Writing infoSumm4 table to", filePath, "\n")
+  write_csv(infoSumm4, file = filePath, progress = FALSE)
 
-  infoSummSummSumm <-
+  infoSumm5 <-
     infoTbl |>
-    mutate(methodBase = DEEBpath::removeHashFromName(method)) |>
     summarize(
       meanEstiElapsedTime = mean(estiElapsedTime, na.rm=TRUE),
       meanParmsElapsedTime = mean(parmsElapsedTime, na.rm=TRUE),
@@ -71,10 +102,10 @@ writeInfo <- function(dbPath) {
       medianParmsElapsedTime = median(parmsElapsedTime, na.rm=TRUE),
       medianTaskElapsedTimes = median(taskElapsedTimes, na.rm=TRUE),
       n = dplyr::n(),
-      .by = methodBase)
-  filePath <- file.path(DEEBpath::summaryDir(dbPath), "_infoSummSummSumm.csv")
-  cat("Writing infoSummSummSumm table to", filePath, "\n")
-  write_csv(infoSummSummSumm, file = filePath, progress = FALSE)
+      .by = c(methodBase))
+  filePath <- file.path(DEEBpath::summaryDir(dbPath), "_infoSumm5.csv")
+  cat("Writing infoSumm5 table to", filePath, "\n")
+  write_csv(infoSumm5, file = filePath, progress = FALSE)
 
   return(invisible(infoTbl))
 }
