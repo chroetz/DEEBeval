@@ -38,6 +38,7 @@ buildTimeStateScore <- function(opts) {
   name <- getClassAt(opts, 3)
   switch(
     name,
+    CumMaxErr = \(info) scoreCumMaxErr(info$esti, info$truth, opts),
     Distance = \(info) scoreDistance(info$esti, info$truth, opts),
     TimeWarp = \(info) scoreTimeWarp(info$esti, info$truth, opts, info),
     FollowTime = \(info) scoreFollowTime(info$esti, info$truth, opts, info),
