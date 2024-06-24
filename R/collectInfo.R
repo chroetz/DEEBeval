@@ -60,5 +60,21 @@ writeInfo <- function(dbPath) {
   cat("Writing infoSummSumm table to", filePath, "\n")
   write_csv(infoSummSumm, file = filePath, progress = FALSE)
 
+  infoSummSummSumm <-
+    infoTbl |>
+    mutate(methodBase = DEEBpath::removeHashFromName(method)) |>
+    summarize(
+      meanEstiElapsedTime = mean(estiElapsedTime, na.rm=TRUE),
+      meanParmsElapsedTime = mean(parmsElapsedTime, na.rm=TRUE),
+      meanTaskElapsedTimes = mean(taskElapsedTimes, na.rm=TRUE),
+      medianEstiElapsedTime = median(estiElapsedTime, na.rm=TRUE),
+      medianParmsElapsedTime = median(parmsElapsedTime, na.rm=TRUE),
+      medianTaskElapsedTimes = median(taskElapsedTimes, na.rm=TRUE),
+      n = dplyr::n(),
+      .by = methodBase)
+  filePath <- file.path(DEEBpath::summaryDir(dbPath), "_infoSummSummSumm.csv")
+  cat("Writing infoSummSummSumm table to", filePath, "\n")
+  write_csv(infoSummSummSumm, file = filePath, progress = FALSE)
+
   return(invisible(infoTbl))
 }
