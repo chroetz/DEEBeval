@@ -34,12 +34,17 @@ copyBest <- function(fromDbPath, toDbPath) {
 }
 
 
-getBests <- function(dbPath, onlyHashed = TRUE, methodTable = NULL) {
+getBests <- function(dbPath, onlyHashed = TRUE, methodTable = NULL, autoId = NULL) {
 
   data <-
-    DEEBpath::summaryTablePath(dbPath) |>
-    read_csv(col_types = readr::cols()) |>
-    filter(methodFull != "Truth")
+    bind_rows(
+      if (!is.null(autoId) && file.exists(DEEBpath::summaryTablePath(dbPath, autoId))) read_csv(DEEBpath::summaryTablePath(dbPath, autoId), col_types = readr::cols()),
+      if (file.exists(DEEBpath::summaryTablePath(dbPath))) read_csv(DEEBpath::summaryTablePath(dbPath), col_types = readr::cols())
+    )
+  if (NCOL(data) == 0) stop("Could not read any score.csv files.")
+  data <- data |>
+    filter(methodFull != "Truth") |>
+    dplyr::distinct()
   if (onlyHashed) data <- data |> filter(!is.na(hash))
 
   if (hasValue(methodTable)) {

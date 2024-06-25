@@ -60,7 +60,7 @@ createSummary <- function(dbPath = ".", collectScores = TRUE, collectHyper = TRU
 
 
 #' @export
-collectAutoScores <- function(dbPath, tblModelMethod) {
+collectAutoScores <- function(dbPath, tblModelMethod, autoId) {
 
   cat("collect scores auto...")
   pt <- proc.time()
@@ -69,14 +69,14 @@ collectAutoScores <- function(dbPath, tblModelMethod) {
 
   scores <- collectScores(dbPath, tblModelMethod = tblModelMethod)
   if (!dir.exists(summaryDir)) dir.create(summaryDir)
-  if (file.exists(DEEBpath::summaryTablePath(dbPath))) {
-    scoresOld <- readr::read_csv(DEEBpath::summaryTablePath(dbPath), col_types = readr::cols())
+  if (file.exists(DEEBpath::summaryTablePath(dbPath, autoId))) {
+    scoresOld <- readr::read_csv(DEEBpath::summaryTablePath(dbPath, autoId), col_types = readr::cols())
   } else {
     scoresOld <- NULL
   }
   write_csv(
     bind_rows(scoresOld, scores) |> distinct(),
-    DEEBpath::summaryTablePath(dbPath),
+    DEEBpath::summaryTablePath(dbPath, autoId),
     progress = FALSE)
 
   cat(" done after", format((proc.time()-pt)[3]), "s\n")

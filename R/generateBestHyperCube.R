@@ -11,8 +11,7 @@ generateBestHyperCube <- function(dbPath, methodTablePath=NULL, autoId=NULL) {
   } else {
     methodTable <- NULL
   }
-  browser()
-  bests <- getBests(dbPath, onlyHashed = TRUE, methodTable = methodTable)
+  bests <- getBests(dbPath, onlyHashed = TRUE, methodTable = methodTable, autoId = autoId)
   if (NROW(bests) == 0) {
     stop("Was not able to collect any best method.\n")
   }
@@ -133,6 +132,8 @@ getBestMethod <- function(dbPath, data, model, obsNr, methodBase = NULL) {
   if (NROW(methodData) == 0) return(NULL)
 
   targetInfo <- getTargetInfo(dbPath, model)
+
+  browser() # TODO aggregate over truthNrs
 
   bestMethod <-
     methodData |>

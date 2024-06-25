@@ -9,7 +9,6 @@ runEval <- function(
   scoreFilter = NULL,
   createPlots = TRUE,
   verbose = FALSE,
-  onlyNew = FALSE,
   writeScoreHtml = TRUE,
   createSummary = TRUE,
   onlySummarizeScore = FALSE
@@ -62,7 +61,7 @@ runEval <- function(
       cat(" took ", format((proc.time()-ptMethod)[3]), "s\n", sep="")
     }
 
-    cat(model, " took ", format((proc.time()-pt)[3]), "s", sep="")
+    cat(model, " took ", format((proc.time()-pt)[3]), "s\n", sep="")
   }
 
   if (writeScoreHtml) {
@@ -87,7 +86,8 @@ runEvalTbl <- function(
     verbose = FALSE,
     writeScoreHtml = TRUE,
     createSummary = TRUE,
-    onlySummarizeScore = FALSE
+    onlySummarizeScore = FALSE,
+    autoId = NULL
 ) {
 
   if (NROW(tbl) > 0) {
@@ -159,7 +159,7 @@ runEvalTbl <- function(
     }
 
     if (onlySummarizeScore) {
-      collectAutoScores(dbPath, tblModelMethod)
+      collectAutoScores(dbPath, tblModelMethod, autoId = autoId)
     }
   }
 
