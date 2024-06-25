@@ -133,8 +133,6 @@ getBestMethod <- function(dbPath, data, model, obsNr, methodBase = NULL) {
 
   targetInfo <- getTargetInfo(dbPath, model)
 
-  browser() # TODO aggregate over truthNrs
-
   bestMethod <-
     methodData |>
     filter(taskNr == targetInfo$taskNr, scoreName == targetInfo$scoreName) |>
