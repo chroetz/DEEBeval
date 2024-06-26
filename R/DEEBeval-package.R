@@ -8,6 +8,7 @@
 #' @importFrom rlang .data .env
 #' @importFrom stringr str_match str_replace_all str_sub str_detect str_extract
 #' @importFrom readr read_csv write_csv read_lines
+#' @importFrom stats median
 "_PACKAGE"
 
 ## usethis namespace: start
