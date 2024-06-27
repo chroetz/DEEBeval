@@ -86,6 +86,7 @@ getFreeFilePath <- function(dirPath, fileName, ending) {
   stopifnot(nr < 1e5)
   return(lst(
     dirPath,
+    methodFile = file.path(dirPath, paste0(fileName, "_", nr)),
     fileName = paste0(fileName, "_", nr, ".", ending),
     filePath,
     nr))
