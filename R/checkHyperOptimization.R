@@ -165,7 +165,6 @@ checkOptimizationState <- function(dbPath, methodInfo, bestHyperCubeDirPath) {
   if (NROW(info) != 1) {
     warning("Was not able to collect specific best method.\n", immediate.=TRUE)
     return(NULL)
-
   }
   optsBest <- ConfigOpts::readOpts(info$filePath)
   found <- FALSE
@@ -207,7 +206,6 @@ checkOptimizationStateHasScore <- function(dbPath, methodInfo, bestHyperCubeDirP
   if (NROW(info) != 1) {
     warning("Was not able to collect specific best method.\n", immediate.=TRUE)
     return(NULL)
-
   }
   optsBest <- ConfigOpts::readOpts(info$filePath)
   found <- FALSE
