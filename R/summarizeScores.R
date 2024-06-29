@@ -183,7 +183,7 @@ allSame <- function(lst) {
 
 
 
-collectScores <- function(dbPath, aggregationFunction = mean, tblModelMethod = NULL) {
+collectScores <- function(dbPath, tblModelMethod = NULL) {
   if (hasValue(tblModelMethod)) {
     models <- tblModelMethod$model |> unique()
   } else {
@@ -193,7 +193,7 @@ collectScores <- function(dbPath, aggregationFunction = mean, tblModelMethod = N
     lapply(
       models,
       \(model) {
-        scores <- collectScoresOfModel(dbPath, model, aggregationFunction = mean, tblModelMethod = tblModelMethod)
+        scores <- collectScoresOfModel(dbPath, model, tblModelMethod = tblModelMethod)
         if (is.null(scores)) return(NULL)
         scores |>
           mutate(model = model, .before = 1)

@@ -152,7 +152,7 @@ checkOptimizationState <- function(dbPath, methodInfo, bestHyperCubeDirPath) {
     full.names = TRUE)[1]
   if (is.na(filePath)) {
     cat("Did not find base file for", methodInfo$methodBaseFile, "\n")
-    next
+    return(NULL)
   }
   optsProto <- ConfigOpts::readOptsBare(filePath)
   isGenerative <- ConfigOpts::hasGenerativeExpands(optsProto)
@@ -193,7 +193,7 @@ checkOptimizationStateHasScore <- function(dbPath, methodInfo, bestHyperCubeDirP
     full.names = TRUE)[1]
   if (is.na(filePath)) {
     cat("Did not find base file for", methodInfo$methodBaseFile, "\n")
-    next
+    return(NULL)
   }
   optsProto <- ConfigOpts::readOptsBare(filePath)
   isGenerative <- ConfigOpts::hasGenerativeExpands(optsProto)
