@@ -60,11 +60,12 @@ checkMethodFileState <- function(dbPath, methodFilePath, model, obsName) {
 
 checkMethodFileStateHasScore <- function(dbPath, methodFilePath, model, obsName) {
   obsNr <- DEEBpath::getObsNrFromName(dbPath, model, obsName)
+  nTruthsGoal <- DEEBpath::getUniqueTruthNrs(dbPath, modelFilter = model, obsNrFilter=obsNr)
   scoresCsvFilePath <- DEEBpath::summaryTablePath(dbPath)
   if (file.exists(scoresCsvFilePath)) {
     scores <- read_csv(scoresCsvFilePath, col_types=readr::cols())
     hyperParmsList <- DEEBesti::loadAsHyperParmsList(dbPath, methodFilePath)
-    res <- hyperParmsList$list |> sapply(checkStateOfHyperParmsHasScore, scores=scores, obsNr=obsNr, model=model)
+    res <- hyperParmsList$list |> sapply(checkStateOfHyperParmsHasScore, scores=scores, obsNr=obsNr, model=model, nTruthsGoal=nTruthsGoal)
   } else {
     res <- rep(FALSE, length(hyperParmsList$list))
   }
@@ -136,11 +137,13 @@ checkStateOfHyperParms <- function(dbPath, hyperParms, paths, obsNr, model) {
 
 
 
-checkStateOfHyperParmsHasScore <- function(scores, hyperParms, obsNr, model) {
+checkStateOfHyperParmsHasScore <- function(scores, hyperParms, obsNr, model, nTruthsGoal) {
   scoreSummaryDir <-
     scores |>
     filter(methodFull == hyperParms$name, model == .env$model, obsNr == .env$obsNr)
-  return(NROW(scoreSummaryDir) > 0)
+  if (NROW(scoreSummaryDir) == 0) return(FALSE)
+  if (any(scoreSummaryDir$nTruths < nTruthsGoal)) return(FALSE)
+  return(TRUE)
 }
 
 
