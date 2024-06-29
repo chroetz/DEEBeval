@@ -55,8 +55,8 @@ evalMetaAndWriteToFile <- function(
 
 updateScores <- function(old, new) {
   key <- c("method", "truthNr", "obsNr", "taskNr")
-  retainRows <- anti_join(old, new, by = key)
-  if (nrow(retainRows) > 0) {
+  if (NROW(old) > 0) {
+    retainRows <- anti_join(old, new, by = key)
     res <- bind_rows(new, retainRows[names(new)])
   } else {
     res <- new
