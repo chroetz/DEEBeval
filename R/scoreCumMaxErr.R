@@ -17,6 +17,7 @@ scoreCumMaxErrOne <- function(follower, target, opts) {
   targeStateNormed <- targetStateDemeaned / scale
   followerStateNormed <- (follower$state - rep(meanState, each = n)) / scale
   err <- sqrt(rowSums((targeStateNormed - followerStateNormed)^2))
+  err[is.na(err)] <- opts$bound
   score <- mean(pmin(opts$bound, cummax(err)))
   return(lst(score))
 }
