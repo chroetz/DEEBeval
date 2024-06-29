@@ -1,5 +1,3 @@
-# TODO: write results to file?
-
 #' @export
 getStateOfHyperParmOptimization <- function(dbPath, methodTable) {
   bestHyperCubePaths <- getNextFreeBestHyperCubeNumber(dbPath)
@@ -120,7 +118,7 @@ checkStateOfHyperParms <- function(dbPath, hyperParms, paths, obsNr, model) {
   scoresCsvFilePath <- DEEBpath::summaryTablePath(dbPath)
   if (file.exists(scoresCsvFilePath)) {
     scoreSummaryDir <-
-      DEEBpath::summaryTablePath(dbPath) |>
+      scoresCsvFilePath |>
       readr::read_csv(col_types = readr::cols()) |>
       filter(methodFull == hyperParms$name, model == .env$model, obsNr == .env$obsNr)
   } else {

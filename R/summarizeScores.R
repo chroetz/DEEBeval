@@ -204,7 +204,7 @@ collectScores <- function(dbPath, aggregationFunction = mean, tblModelMethod = N
 }
 
 
-collectScoresOfModel <- function(dbPath, model, aggregationFunction = mean, tblModelMethod = NULL) {
+collectScoresOfModel <- function(dbPath, model, tblModelMethod = NULL) {
   paths <- DEEBpath::getPaths(dbPath, model)
   scoreTablePattern <- "^task(\\d{2})(.+)_eval\\.csv$" # TODO: move to DEEBpath
   fileNames <- list.files(paths$eval, pattern = scoreTablePattern)
@@ -213,19 +213,26 @@ collectScoresOfModel <- function(dbPath, model, aggregationFunction = mean, tblM
     methods <- tblModelMethod |> filter(.data$model == .env$model) |> pull(method) |> unique()
     fileNames <- fileNames[methodNames %in% methods]
   }
-  scores <- lapply(
+  scoresPlain <- lapply(
     fileNames,
-    \(flnm) {
-        readr::read_csv(file.path(paths$eval, flnm), col_types=readr::cols()) |>
-        summarise(
-          across(-truthNr, aggregationFunction),
-          .by = c(method, obsNr, taskNr))
-    }
+    \(flnm) readr::read_csv(file.path(paths$eval, flnm), col_types=readr::cols())
   ) |>
     bind_rows()
-  if (nrow(scores) == 0) return(NULL)
+  scoresAgg <-
+    scoresPlain |>
+    pivot_longer(
+      -c(method, truthNr, obsNr, taskNr),
+      names_to = "scoreName",
+      values_to = "scoreValue") |>
+    summarize(
+      scoreMean = mean(scoreValue),
+      scoreMeanNoNa = mean(scoreValue, na.rm=TRUE),
+      nTruths = dplyr::n(),
+      nNA = sum(is.na(scoreValue)),
+      .by = -c(scoreValue, truthNr))
+  if (NROW(scoresAgg) == 0) return(NULL)
   tbl <-
-    scores |>
+    scoresAgg |>
     mutate(
       hasVariations = stringr::str_detect(method, "_[0-9a-f]{32}$"),
       methodFull = method,
@@ -236,10 +243,6 @@ collectScoresOfModel <- function(dbPath, model, aggregationFunction = mean, tblM
     ) |>
     relocate(
       methodFull, methodBase, hash, obsNr, taskNr
-    ) |>
-    pivot_longer(
-      -c(methodFull, methodBase, hash, obsNr, taskNr),
-      names_to = "scoreName",
-      values_to = "scoreValue")
+    )
   return(tbl)
 }

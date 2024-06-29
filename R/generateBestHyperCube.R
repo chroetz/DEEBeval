@@ -137,7 +137,7 @@ getBestMethod <- function(dbPath, data, model, obsNr, methodBase = NULL) {
   bestMethod <-
     methodData |>
     filter(taskNr == targetInfo$taskNr, scoreName == targetInfo$scoreName) |>
-    filter(scoreValue == targetInfo$fun(scoreValue))
+    filter(scoreMean == targetInfo$fun(scoreMean))
 
   if (nrow(bestMethod) == 0) return(NA_character_)
 

@@ -29,9 +29,9 @@ showStatsTable <- function(d, caption, digits=3, format = "f") {
   if (NROW(d) == 0) return(paste0(caption, ": no data"))
   dStats <- 
     d |> 
-    select(methodFull, scoreValue) |> 
-    arrange(desc(scoreValue)) |> 
-    rename(method = methodFull, score = scoreValue)
+    select(methodFull, scoreMean) |> 
+    arrange(desc(scoreMean)) |> 
+    rename(method = methodFull, score = scoreMean)
   dText <- dStats
   dText$score <- sprintf(paste0("%.",digits, format), dText$score)
   tbl <- 

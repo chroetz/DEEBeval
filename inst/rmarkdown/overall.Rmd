@@ -55,14 +55,14 @@ data <-
   mutate(method = str_remove_all(methodBase, "(_[0-9a-f]{32})+$")) |> 
   tidyr::complete(method, model, obsNr, taskNr, scoreName) |> 
   group_by(model, obsNr, taskNr, scoreName) |> 
-  mutate(rank = rank(scoreValue, na.last = TRUE, ties.method = "average")) |> 
+  mutate(rank = rank(scoreMean, na.last = TRUE, ties.method = "average")) |> 
   ungroup()
 dataSumm <- 
   data |> 
   summarize(
-    meanScore = mean(scoreValue, na.rm=TRUE), 
-    medianScore = median(scoreValue, na.rm=TRUE), 
-    nNAs = sum(is.na(scoreValue)), 
+    meanScore = mean(scoreMean, na.rm=TRUE), 
+    medianScore = median(scoreMean, na.rm=TRUE), 
+    nNAs = sum(is.na(scoreMean)), 
     meanRank = mean(rank),
     medianRank = median(rank),
     .by=c(method, obsNr, taskNr, scoreName)) |> 

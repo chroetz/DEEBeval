@@ -75,9 +75,9 @@ for (mdl in unique(data$model)) {
           cat("##### Score", lss, "\n")
           lssData <- 
             filter(taskData, scoreName == lss) |> 
-            select(hash, scoreValue) |> 
-            arrange(desc(scoreValue)) |> 
-            rename(score = scoreValue) |> 
+            select(hash, scoreMean) |> 
+            arrange(desc(scoreMean)) |> 
+            rename(score = scoreMean) |> 
             left_join(methodOptsOne, by = c("hash" = "id"))
           
           cat("\n\n")
