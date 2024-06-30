@@ -60,7 +60,7 @@ checkMethodFileState <- function(dbPath, methodFilePath, model, obsName) {
 
 checkMethodFileStateHasScore <- function(dbPath, methodFilePath, model, obsName) {
   obsNr <- DEEBpath::getObsNrFromName(dbPath, model, obsName)
-  nTruthsGoal <- DEEBpath::getUniqueTruthNrs(dbPath, modelFilter = model, obsNrFilter=obsNr)
+  nTruthsGoal <- length(DEEBpath::getUniqueTruthNrs(dbPath, modelFilter = model, obsNrFilter=obsNr))
   scoresCsvFilePath <- DEEBpath::summaryTablePath(dbPath)
   if (file.exists(scoresCsvFilePath)) {
     scores <- read_csv(scoresCsvFilePath, col_types=readr::cols())
@@ -149,6 +149,7 @@ checkStateOfHyperParmsHasScore <- function(scores, hyperParms, obsNr, model, nTr
 
 
 checkOptimizationState <- function(dbPath, methodInfo, bestHyperCubeDirPath) {
+  obsNr <- DEEBpath::getObsNrFromName(dbPath, model, obsName)
   filePath <- list.files(
     path = DEEBpath::hyperDir(dbPath),
     pattern = paste0("^", methodInfo$methodBaseFile, "\\.json$"),
@@ -162,7 +163,7 @@ checkOptimizationState <- function(dbPath, methodInfo, bestHyperCubeDirPath) {
   if (!isGenerative) {
     return(NULL)
   }
-  info <- getBests(dbPath, onlyHashed = TRUE, methodTable = methodInfo)
+  info <- getBests(dbPath, onlyHashed = TRUE, methodTable = methodInfo) |> filter(.data$obsNr == .env$obsNr)
   if (NROW(info) != 1) {
     warning("Was not able to collect specific best method.\n", immediate.=TRUE)
     return(NULL)
@@ -195,6 +196,7 @@ checkOptimizationState <- function(dbPath, methodInfo, bestHyperCubeDirPath) {
 
 
 checkOptimizationStateHasScore <- function(dbPath, methodInfo, bestHyperCubeDirPath) {
+  obsNr <- DEEBpath::getObsNrFromName(dbPath, model, obsName)
   filePath <- list.files(
     path = DEEBpath::hyperDir(dbPath),
     pattern = paste0("^", methodInfo$methodBaseFile, "\\.json$"),
@@ -208,7 +210,7 @@ checkOptimizationStateHasScore <- function(dbPath, methodInfo, bestHyperCubeDirP
   if (!isGenerative) {
     return(NULL)
   }
-  info <- getBests(dbPath, onlyHashed = TRUE, methodTable = methodInfo)
+  info <- getBests(dbPath, onlyHashed = TRUE, methodTable = methodInfo) |> filter(.data$obsNr == .env$obsNr)
   if (NROW(info) != 1) {
     warning("Was not able to collect specific best method.\n", immediate.=TRUE)
     return(NULL)
