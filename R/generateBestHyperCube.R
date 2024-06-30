@@ -76,7 +76,7 @@ generateBestHyperCube <- function(dbPath, methodTablePath=NULL, autoId=NULL, cub
 }
 
 
-getBestHyperCubePaths <- function(dbPath, autoId, identifyingObject, cubeId=NULL) {
+getBestHyperCubePaths <- function(dbPath, autoId, identifyingObject=NULL, cubeId=NULL) {
   if (hasValue(autoId)) {
     basePath <- DEEBpath::autoIdDir(dbPath, autoId)
     basePathRel <- file.path("auto", autoId)
@@ -84,7 +84,11 @@ getBestHyperCubePaths <- function(dbPath, autoId, identifyingObject, cubeId=NULL
     basePath <- file.path(DEEBpath::hyperDir(dbPath), "BestCube")
     basePathRel <- "BestCube"
   }
-  bestHyperCubeDirName <- cubeId
+  if (hasValue(cubeId)) {
+    bestHyperCubeDirName <- cubeId
+  } else {
+    bestHyperCubeDirName <- DEEButil::getUniqueFileName(basePath, identifyingObject = identifyingObject, fullPath = FALSE)
+  }
   bestHyperCubeDirPath <- file.path(basePath, bestHyperCubeDirName)
   if (!dir.exists(bestHyperCubeDirPath)) dir.create(bestHyperCubeDirPath, recursive=TRUE)
   bestHyperCubeCsvFilePath <- paste0(bestHyperCubeDirPath, ".csv")
