@@ -51,7 +51,6 @@ generateBestHyperCube <- function(dbPath, methodTablePath=NULL, autoId=NULL, cub
       identifyingObject = optsProto,
       fullPath = FALSE)
     outFilePath <- file.path(bestHyperCubePaths$dirPath, paste0(outFileName, ".json"))
-    browser()
     ConfigOpts::writeOpts(
       optsProto,
       file = outFilePath,
