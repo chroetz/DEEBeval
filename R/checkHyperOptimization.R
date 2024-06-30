@@ -149,7 +149,7 @@ checkStateOfHyperParmsHasScore <- function(scores, hyperParms, obsNr, model, nTr
 
 
 checkOptimizationState <- function(dbPath, methodInfo, bestHyperCubeDirPath) {
-  obsNr <- DEEBpath::getObsNrFromName(dbPath, model, obsName)
+  obsNr <- DEEBpath::getObsNrFromName(dbPath, methodInfo$model, methodInfo$obs)
   filePath <- list.files(
     path = DEEBpath::hyperDir(dbPath),
     pattern = paste0("^", methodInfo$methodBaseFile, "\\.json$"),
@@ -163,7 +163,8 @@ checkOptimizationState <- function(dbPath, methodInfo, bestHyperCubeDirPath) {
   if (!isGenerative) {
     return(NULL)
   }
-  info <- getBests(dbPath, onlyHashed = TRUE, methodTable = methodInfo) |> filter(.data$obsNr == .env$obsNr)
+  info <- getBests(dbPath, onlyHashed = TRUE, methodTable = methodInfo)
+  if (NROW(info) > 0) info <- info |> filter(.data$obsNr == .env$obsNr)
   if (NROW(info) != 1) {
     warning("Was not able to collect specific best method.\n", immediate.=TRUE)
     return(NULL)
@@ -196,7 +197,7 @@ checkOptimizationState <- function(dbPath, methodInfo, bestHyperCubeDirPath) {
 
 
 checkOptimizationStateHasScore <- function(dbPath, methodInfo, bestHyperCubeDirPath) {
-  obsNr <- DEEBpath::getObsNrFromName(dbPath, model, obsName)
+  obsNr <- DEEBpath::getObsNrFromName(dbPath, methodInfo$model, methodInfo$obs)
   filePath <- list.files(
     path = DEEBpath::hyperDir(dbPath),
     pattern = paste0("^", methodInfo$methodBaseFile, "\\.json$"),
@@ -210,7 +211,8 @@ checkOptimizationStateHasScore <- function(dbPath, methodInfo, bestHyperCubeDirP
   if (!isGenerative) {
     return(NULL)
   }
-  info <- getBests(dbPath, onlyHashed = TRUE, methodTable = methodInfo) |> filter(.data$obsNr == .env$obsNr)
+  info <- getBests(dbPath, onlyHashed = TRUE, methodTable = methodInfo)
+  if (NROW(info) > 0) info <- info |> filter(.data$obsNr == .env$obsNr)
   if (NROW(info) != 1) {
     warning("Was not able to collect specific best method.\n", immediate.=TRUE)
     return(NULL)
