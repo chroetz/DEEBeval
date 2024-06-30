@@ -1,6 +1,6 @@
 #' @export
 getStateOfHyperParmOptimization <- function(dbPath, methodTable) {
-  bestHyperCubePaths <- getNextFreeBestHyperCubeNumber(dbPath)
+  bestHyperCubePaths <- getBestHyperCubePaths(dbPath, autoId=NULL, methodTable)
   if (!dir.exists(bestHyperCubePaths$dirPath)) dir.create(bestHyperCubePaths$dirPath, recursive=TRUE)
   resList <- lapply(seq_len(nrow(methodTable)), \(i) getStateOfHyperParmOptimizationOne(dbPath, methodTable[i, ], bestHyperCubePaths$dirPath))
   return(resList)
@@ -9,7 +9,7 @@ getStateOfHyperParmOptimization <- function(dbPath, methodTable) {
 
 #' @export
 getStateOfHyperParmOptimizationHasScore <- function(dbPath, methodTable, outDir) {
-  bestHyperCubePaths <- getNextFreeBestHyperCubeNumber(dbPath)
+  bestHyperCubePaths <- getBestHyperCubePaths(dbPath, autoId=NULL, methodTable)
   if (!dir.exists(bestHyperCubePaths$dirPath)) dir.create(bestHyperCubePaths$dirPath, recursive=TRUE)
   resList <- lapply(seq_len(nrow(methodTable)), \(i) getStateOfHyperParmOptimizationHasScoreOne(dbPath, methodTable[i, ], bestHyperCubePaths$dirPath))
   res <- bind_rows(resList)
@@ -179,10 +179,15 @@ checkOptimizationState <- function(dbPath, methodInfo, bestHyperCubeDirPath) {
   if (!found) stop(filePath, " did not match prototype for ", optsBest$name)
   optsProto$list <- list(ConfigOpts::replaceExpandValues(optsProto$list[[iProto]], optsBest))
   optsProto$name <- info$methodBase
-  outFile <- getFreeFilePath(bestHyperCubeDirPath, info$methodBase, "json")
+  outFilePath <- DEEButil::getUniqueFileName(
+    dirPath = bestHyperCubeDirPath,
+    prefix = optsProto$name,
+    fileExtension = ".json",
+    identifyingObject = optsProto,
+    fullPath = TRUE)
   ConfigOpts::writeOpts(
     optsProto,
-    file = outFile$filePath,
+    file = outFilePath,
     validate = FALSE)
   optiState <- checkMethodFileState(dbPath, file.path(basename(dirname(outFile$methodFile)), basename(outFile$methodFile)), methodInfo$model, methodInfo$obs)
   return(optiState)
@@ -220,10 +225,15 @@ checkOptimizationStateHasScore <- function(dbPath, methodInfo, bestHyperCubeDirP
   if (!found) stop(filePath, " did not match prototype for ", optsBest$name)
   optsProto$list <- list(ConfigOpts::replaceExpandValues(optsProto$list[[iProto]], optsBest))
   optsProto$name <- info$methodBase
-  outFile <- getFreeFilePath(bestHyperCubeDirPath, info$methodBase, "json")
+  outFilePath <- DEEButil::getUniqueFileName(
+    dirPath = bestHyperCubeDirPath,
+    prefix = optsProto$name,
+    fileExtension = ".json",
+    identifyingObject = optsProto,
+    fullPath = TRUE)
   ConfigOpts::writeOpts(
     optsProto,
-    file = outFile$filePath,
+    file = outFilePath,
     validate = FALSE)
   optiState <- checkMethodFileStateHasScore(dbPath, file.path(basename(dirname(outFile$methodFile)), basename(outFile$methodFile)), methodInfo$model, methodInfo$obs)
   return(optiState)

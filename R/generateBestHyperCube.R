@@ -1,10 +1,5 @@
 #' @export
-generateBestHyperCube <- function(dbPath, methodTablePath=NULL, autoId=NULL) {
-
-  bestHyperCubePaths <- getNextFreeBestHyperCubeNumber(dbPath, autoId)
-
-  if (!dir.exists(bestHyperCubePaths$dirPath))
-    dir.create(bestHyperCubePaths$dirPath, recursive=TRUE)
+generateBestHyperCube <- function(dbPath, methodTablePath=NULL, autoId=NULL, cubeId=NULL) {
 
   if (hasValue(methodTablePath)) {
     methodTable <- readr::read_csv(methodTablePath, col_types=readr::cols())
@@ -16,9 +11,10 @@ generateBestHyperCube <- function(dbPath, methodTablePath=NULL, autoId=NULL) {
     stop("Was not able to collect any best method.\n")
   }
 
-  bests$bestCubePath <- NA_character_
-  bests$bestProtoPath <- NA_character_
-  bests$nr <- NA_real_
+  bestHyperCubePaths <- getBestHyperCubePaths(dbPath, autoId, bests, cubeId=cubeId)
+
+  bests$methodFilePath <- NA_character_
+  bests$methodFileRelPath <- NA_character_
   for (i in seq_len(nrow(bests))) {
     info <- bests[i, ]
     filePath <- list.files(
@@ -47,28 +43,29 @@ generateBestHyperCube <- function(dbPath, methodTablePath=NULL, autoId=NULL) {
     if (!found) stop(filePath, " did not matching prototype for ", optsBest$name)
     optsProto$list <- list(ConfigOpts::replaceExpandValues(optsProto$list[[iProto]], optsBest))
 
-    outFile <- getFreeFilePath(bestHyperCubePaths$dirPath, info$methodBase, "json")
-
     optsProto$name <- info$methodBase
+    outFileName <- DEEButil::getUniqueFileName(
+      dirPath = bestHyperCubePaths$dirPath,
+      prefix = optsProto$name,
+      fileExtension = "",
+      identifyingObject = optsProto,
+      fullPath = FALSE)
+    outFilePath <- file.path(bestHyperCubePaths$dirPath, paste0(outFileName, ".json"))
     ConfigOpts::writeOpts(
       optsProto,
-      file = outFile$filePath,
+      file = outFilePath,
       validate = FALSE)
-    bests$bestCubePath[i] <- outFile$filePath
-    bests$bestProtoPath[i] <- optsProto$name
-    bests$nr[i] <- outFile$nr
+    bests$methodFilePath[i] <- outFilePath
+    bests$methodFileRelPath[i] <- file.path(bestHyperCubePaths$dirPathRel, outFileName)
   }
 
   methodCsv <-
     bests |>
-    drop_na(bestCubePath, nr) |>
-    mutate(methodFile = file.path(
-      bestHyperCubePaths$dir,
-      paste0(methodBase, "_", nr))
-    ) |>
+    drop_na(methodFilePath) |>
     group_by(model) |>
     mutate(obs = DEEBpath::getObsNameFromNr(dbPath, model, obsNr)) |>
     ungroup() |>
+    rename(methodFile = methodFileRelPath) |>
     select(model, methodFile, obs)
 
   write_csv(methodCsv, bestHyperCubePaths$csvFilePath, progress = FALSE)
@@ -78,46 +75,28 @@ generateBestHyperCube <- function(dbPath, methodTablePath=NULL, autoId=NULL) {
 }
 
 
-getFreeFilePath <- function(dirPath, fileName, ending) {
-  for (nr in 1:1e5) {
-    filePath <- file.path(dirPath, paste0(fileName, "_", nr, ".", ending))
-    if (!file.exists(filePath)) break
-  }
-  stopifnot(nr < 1e5)
-  return(lst(
-    dirPath,
-    methodFile = file.path(dirPath, paste0(fileName, "_", nr)),
-    fileName = paste0(fileName, "_", nr, ".", ending),
-    filePath,
-    nr))
-}
-
-
-getNextFreeBestHyperCubeNumber <- function(dbPath, autoId = NULL) {
+getBestHyperCubePaths <- function(dbPath, autoId, identifyingObject, cubeId=NULL) {
   if (hasValue(autoId)) {
     basePath <- DEEBpath::autoIdDir(dbPath, autoId)
+    basePathRel <- file.path("auto", autoId)
   } else {
-    basePath <- DEEBpath::hyperDir(dbPath)
+    basePath <- file.path(DEEBpath::hyperDir(dbPath), "BestCube")
+    basePathRel <- "BestCube"
   }
-  for (nr in 1:1e5) {
-    csvFilePath <- file.path(basePath, paste0("methods_BestCube_", nr, ".csv"))
-    dirName <- paste0("methods_BestCube_", nr)
-    dirPath <- file.path(basePath, dirName)
-    if (!file.exists(csvFilePath) && !dir.exists(dirPath)) break
-  }
-  stopifnot(nr < 1e5)
-  if (hasValue(autoId)) {
-    dir <- file.path(DEEBpath::autoIdDirRelativeToHyper(autoId), dirName)
-  } else {
-    dir <- dirName
-  }
-  return(lst(
-    csvFilePath,
-    dirPath,
-    dir,
-    nr))
+  bestHyperCubeDirName <- DEEButil::getUniqueFileName(
+    dirPath = basePath,
+    prefix = paste0(c("BestCube", cubeId), collapse="_"),
+    fileExtension = "",
+    identifyingObject = identifyingObject,
+    fullPath = FALSE)
+  bestHyperCubeDirPath <- file.path(basePath, bestHyperCubeDirName)
+  if (!dir.exists(bestHyperCubeDirPath)) dir.create(bestHyperCubeDirPath, recursive=TRUE)
+  bestHyperCubeCsvFilePath <- paste0(bestHyperCubeDirPath, ".csv")
+  list(
+    dirPath = bestHyperCubeDirPath,
+    dirPathRel = file.path(basePathRel, bestHyperCubeDirName),
+    csvFilePath = bestHyperCubeCsvFilePath)
 }
-
 
 
 getBestMethod <- function(dbPath, data, model, obsNr, methodBase = NULL) {

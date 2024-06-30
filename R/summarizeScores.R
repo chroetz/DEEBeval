@@ -62,7 +62,7 @@ createSummary <- function(dbPath = ".", collectScores = TRUE, collectHyper = TRU
 #' @export
 collectAutoScores <- function(dbPath, tblModelMethod, autoId) {
 
-  cat("collect scores auto...")
+  cat("collect scores auto...\n")
   pt <- proc.time()
 
   summaryDir <- DEEBpath::summaryDir(dbPath)
@@ -74,12 +74,14 @@ collectAutoScores <- function(dbPath, tblModelMethod, autoId) {
   } else {
     scoresOld <- NULL
   }
+  data <- bind_rows(scoresOld, scores) |> distinct()
+  outFilePath <- DEEBpath::summaryTablePath(dbPath, autoId)
+  cat("Writing", nrow(data), "lines to", outFilePath, "\n")
   write_csv(
-    bind_rows(scoresOld, scores) |> distinct(),
-    DEEBpath::summaryTablePath(dbPath, autoId),
+    data,
+    outFilePath,
     progress = FALSE)
-
-  cat(" done after", format((proc.time()-pt)[3]), "s\n")
+  cat("All done after", format((proc.time()-pt)[3]), "s\n")
 }
 
 
