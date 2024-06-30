@@ -51,6 +51,7 @@ generateBestHyperCube <- function(dbPath, methodTablePath=NULL, autoId=NULL, cub
       identifyingObject = optsProto,
       fullPath = FALSE)
     outFilePath <- file.path(bestHyperCubePaths$dirPath, paste0(outFileName, ".json"))
+    browser()
     ConfigOpts::writeOpts(
       optsProto,
       file = outFilePath,
@@ -83,12 +84,7 @@ getBestHyperCubePaths <- function(dbPath, autoId, identifyingObject, cubeId=NULL
     basePath <- file.path(DEEBpath::hyperDir(dbPath), "BestCube")
     basePathRel <- "BestCube"
   }
-  bestHyperCubeDirName <- DEEButil::getUniqueFileName(
-    dirPath = basePath,
-    prefix = paste0(c("BestCube", cubeId), collapse="_"),
-    fileExtension = "",
-    identifyingObject = identifyingObject,
-    fullPath = FALSE)
+  bestHyperCubeDirName <- cubeId
   bestHyperCubeDirPath <- file.path(basePath, bestHyperCubeDirName)
   if (!dir.exists(bestHyperCubeDirPath)) dir.create(bestHyperCubeDirPath, recursive=TRUE)
   bestHyperCubeCsvFilePath <- paste0(bestHyperCubeDirPath, ".csv")
