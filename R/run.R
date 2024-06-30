@@ -161,6 +161,8 @@ runEvalTbl <- function(
     if (onlySummarizeScore) {
       collectAutoScores(dbPath, tblModelMethod, autoId = autoId)
     }
+  } else {
+    cat("table has no rows\n")
   }
 
   if (createSummary) {
