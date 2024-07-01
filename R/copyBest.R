@@ -27,7 +27,7 @@ copyBest <- function(fromDbPath, toDbPath) {
     rowwise() |>
     mutate(obs = DEEBpath::getObsNameFromNr(fromDbPath, model, obsNr)) |>
     select(model, bestMethod, obs) |>
-    rename(obs, methodFile = bestMethod)
+    rename(methodFile = bestMethod)
   outFilePath <- file.path(DEEBpath::hyperDir(toDbPath), "methods_Best.csv")
   write_csv(bestMethodCsv, outFilePath, progress = FALSE)
   cat("Created", outFilePath, "\n")
