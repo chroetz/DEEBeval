@@ -18,6 +18,9 @@ copyBest <- function(fromDbPath, toDbPath) {
       to = targetPath,
       overwrite = TRUE)
     if (ok) nFilesCopied <- nFilesCopied + 1
+    opts <- ConfigOpts::readOptsBare(targetPath)
+    opts$name <- DEEBpath::removeHashFromName(opts$name)
+    ConfigOpts::writeOpts(opts, targetPath, addMetaInfo = FALSE, warn = FALSE, validate = FALSE)
   }
 
   cat("Copied", nFilesCopied, "out of", nrow(bests), "files.\n")
