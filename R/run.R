@@ -186,7 +186,7 @@ runScoreHtml <- function(dbPath, model) {
     paths$eval,
     "scores",
     path = paths$eval,
-    reference = "ConstMean",
+    reference = "^ConstLast",
     best = "Truth")
   cat(" done after ", format((proc.time()-pt)[3]), "s\n", sep="")
 }

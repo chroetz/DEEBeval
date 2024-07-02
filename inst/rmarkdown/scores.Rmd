@@ -8,14 +8,15 @@ output:
     toc_depth: 6
     number_sections: no
 params:
-  reference: "Const"
+  reference: "ConstLast"
   best: "Truth"
-  path: "."
+  path: "~/DeebDbDystsNoisefreeTest_debug/BickleyJet/evaluation"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, error = TRUE)
+knitr::opts_chunk$set(echo = FALSE, error = TRUE, warning = FALSE)
 library(dplyr)
+library(tidyr)
 library(purrr)
 library(readr)
 library(stringr)
@@ -25,11 +26,11 @@ library(stringr)
 scorePaths <- DEEBpath::getScoreFiles(params$path)
 esti <-
   scorePaths |> 
-  map(~ read_csv(.) |> pivot_longer(-c(method, ends_with("Nr")), names_to="loss")) |> 
+  map(~ read_csv(., col_types=cols()) |> pivot_longer(-c(method, ends_with("Nr")), names_to="loss")) |> 
   reduce(bind_rows)
 reference <- 
   esti |> 
-  filter(method == .env$params$reference) |> 
+  filter(str_detect(method, .env$params$reference)) |> 
   rename(refValue = value) |> 
   select(-method)
 best <- 
@@ -177,9 +178,9 @@ cat("[Navi](../../navi.html)\n")
 # Skill Scores {.tabset}
 
 ```{r}
-showObsSkillScoreTables <- function(obsData, title, showAll) {
+showObsSkillScoreTables <- function(obsDataIn, title, showAll) {
   obsData <- 
-    obsData |> 
+    obsDataIn |> 
     mutate(value = skillScore) |> # show skill scores only; not absolute values
     group_by(truthNr, obsNr, taskNr) |> 
     filter(!all(is.na(value))) |> 
