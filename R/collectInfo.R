@@ -1,9 +1,23 @@
 loadInfo <- function(path) {
   files <- list.files(path, pattern = "truth\\d{4}obs\\d{4}info.json", full.names=TRUE)
   if (length(files)==0) return(NULL)
-  infoList <- lapply(files, jsonlite::read_json, simplifyVector = TRUE)
+  infoList <- lapply(files, saveLoadJson)
   infoList |> bind_rows()
 }
+
+
+saveLoadJson <- function(file) {
+  result <- tryCatch(
+    jsonlite::read_json(file, simplifyVector=TRUE),
+    error = \(cond) cond
+  )
+  if (inherits(result, c("error", "condition"))) {
+    cat("ERROR in file", file, ":", result$message, "\n")
+    return(NULL)
+  }
+  return(result)
+}
+
 
 #' @export
 collectInfo <- function(dbPath) {
