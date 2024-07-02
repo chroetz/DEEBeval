@@ -190,3 +190,111 @@ runScoreHtml <- function(dbPath, model) {
     best = "Truth")
   cat(" done after ", format((proc.time()-pt)[3]), "s\n", sep="")
 }
+
+
+#' @export
+runPlotting <- function(dbPath, model) {
+  cat("Start creating plots for model", model, "...")
+  pt <- proc.time()
+  paths <- DEEBpath::getPaths(dbPath, model)
+  if (!dir.exists(paths$plots)) dir.create(paths$plots, recursive=TRUE)
+
+  createObsPlots(paths)
+
+  methodsTbl <- DEEBpath::getMethods(dbPath, model)
+  for (k in seq_len(nrow(methodsTbl))) {
+    estiPattern <- "^truth(\\d{4})obs(\\d{4})task(\\d{2})esti\\.csv$"
+    methodEstiPath <- methodsTbl$path[k]
+    estiFileNames <- list.files(methodEstiPath, estiPattern)
+    if (length(estiFileNames) == 0) next
+    mat <- stringr::str_match(estiFileNames, estiPattern)
+    colnames(mat) <- c("fileName", "truthNr", "obsNr", "taskNr")
+    tbl <- tibble::as_tibble(mat)
+    data <-
+      tbl |>
+      mutate(
+        truthNr = as.integer(truthNr),
+        obsNr = as.integer(obsNr),
+        taskNr = as.integer(taskNr),
+        filePath = file.path(methodEstiPath, fileName)
+      )
+    baseInfo <- list(
+      model = model,
+      method = methodsTbl$method[k],
+      plotsPath = paths$plots
+    )
+    for (i in seq_len(nrow(data))) {
+      info <- c(
+        as.list(data[i,]),
+        baseInfo)
+      info <- c(
+        info,
+        list(
+          truth = DEEBtrajs::readTrajsOrDerivTrajs(file.path(paths$truth, DEEBpath::taskTruthFile(info))),
+          task = ConfigOpts::readOptsBare(file.path(paths$task, DEEBpath::taskFile(info, ending=TRUE))),
+          esti = DEEBtrajs::readTrajsOrDerivTrajs(info$filePath),
+          obs = NULL))
+      }
+      createPlotsOne(info)
+  }
+
+  DEEBplots::createShowPlots(paths$eval)
+
+  cat(" done after ", format((proc.time()-pt)[3]), "s\n", sep="")
+}
+
+createPlotsOne <- function(info) {
+  stopifnot(!is.null(info$truth), !is.null(info$esti))
+
+  info$title <- paste0(info$method, ", Task", info$taskNr, ", Truth", info$truthNr, ", Obs", info$obsNr)
+
+  plots <- createTruthEstiTaskPlots(info)
+  for (nm in names(plots)) {
+    plt <- plots[[nm]]
+    fileName <- DEEBpath::parenthesisFileName(
+      truth = info$truthNr,
+      obs = info$obsNr,
+      task = info$taskNr,
+      method = info$method,
+      plot = nm,
+      .ending = "png")
+    DEEBplots::writePlot(plt, file.path(info$plotsPath, fileName))
+  }
+}
+
+
+createObsPlots <- function(paths) {
+  metaObs <-
+    DEEBpath::getMetaGeneric(
+      c(paths$truth, paths$obs),
+      tagsFilter = c("truth", "obs")
+    ) |>
+    tidyr::drop_na()
+
+  for (i in seq_len(nrow(metaObs))) {
+    info <- metaObs[i,]
+    plts <- DEEBdata::createTruthObsPlots(info)
+    for (nm in names(plts)) {
+      fileName <- DEEBpath::parenthesisFileName(truth = info$truthNr, obs = info$obsNr, plot = nm, .ending = "png")
+      ggplot2::ggsave(file.path(paths$plots, fileName), plts[[nm]], width = 3, height = 3)
+    }
+  }
+
+  metaTruth <-
+    DEEBpath::getMetaGeneric(
+      c(paths$truth, paths$task),
+      tagsFilter = c("truth", "task")
+    ) |>
+    tidyr::drop_na()
+
+  if (!"taskNr" %in% colnames(metaTruth)) metaTruth <- metaTruth[0,]
+
+  for (i in seq_len(nrow(metaTruth))) {
+    info <- metaTruth[i,]
+    plts <- DEEBdata::createTruthTaskPlots(info)
+    for (nm in names(plts)) {
+      fileName <- DEEBpath::parenthesisFileName(truth = info$truthNr, task = info$taskNr, plot = nm, .ending = "png")
+      ggplot2::ggsave(file.path(paths$plots, fileName), plts[[nm]], width = 3, height = 3)
+    }
+  }
+}
