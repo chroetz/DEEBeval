@@ -31,7 +31,7 @@ copyBest <- function(fromDbPath, toDbPath) {
     mutate(obs = DEEBpath::getObsNameFromNr(fromDbPath, model, obsNr)) |>
     select(model, bestMethod, obs) |>
     rename(methodFile = bestMethod) |>
-    mutate(
+    mutate( # DEEBpath::getMethodTable() reads this later and expands regex for mode and obs
       model = paste0("^", model, "$"),
       obs = paste0("^", obs, "$"))
   outFilePath <- file.path(DEEBpath::hyperDir(toDbPath), "methods_Best.csv")
