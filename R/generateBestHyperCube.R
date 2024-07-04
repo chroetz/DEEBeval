@@ -2,7 +2,7 @@
 generateBestHyperCube <- function(dbPath, methodTablePath=NULL, autoId=NULL, cubeId=NULL) {
 
   if (hasValue(methodTablePath)) {
-    methodTable <- readr::read_csv(methodTablePath, col_types=readr::cols())
+    methodTable <- DEEBpath::getMethodTable(dbPath, methodTablePath)
   } else {
     methodTable <- NULL
   }

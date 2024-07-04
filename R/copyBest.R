@@ -46,10 +46,12 @@ getBests <- function(dbPath, onlyHashed = TRUE, methodTable = NULL, autoId = NUL
 
   data <-
     bind_rows(
-      if (!is.null(autoId) && file.exists(DEEBpath::summaryTablePath(dbPath, autoId)))
-        read_csv(DEEBpath::summaryTablePath(dbPath, autoId), col_types = readr::cols()),
-      if (file.exists(DEEBpath::summaryTablePath(dbPath)))
+      if (!is.null(autoId) && file.exists(DEEBpath::summaryTablePath(dbPath, autoId))) {
+        read_csv(DEEBpath::summaryTablePath(dbPath, autoId), col_types = readr::cols())
+      },
+      if (file.exists(DEEBpath::summaryTablePath(dbPath))) {
         read_csv(DEEBpath::summaryTablePath(dbPath), col_types = readr::cols())
+      }
     )
   if (NCOL(data) == 0) stop("Could not read any score.csv files.")
   data <- data |>
