@@ -1,5 +1,5 @@
 writeDoc <- function(outDir, file, ...) {
-  tempDir <- rlang::hash(list(Sys.time(), outDir, file, ...))
+  tempDir <- paste0("_", rlang::hash(list(Sys.time(), outDir, file, ...)))
   dir.create(tempDir)
   fileName <- paste0("eval_", file, ".html")
   rmarkdown::render(
