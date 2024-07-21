@@ -19,6 +19,7 @@ Imports:
     DEEButil,
     dplyr,
     dtw,
+    ggplot2,
     jsonlite,
     proxy,
     readr,
