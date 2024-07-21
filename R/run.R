@@ -234,8 +234,8 @@ runPlotting <- function(dbPath, model) {
           task = ConfigOpts::readOptsBare(file.path(paths$task, DEEBpath::taskFile(info, ending=TRUE))),
           esti = DEEBtrajs::readTrajsOrDerivTrajs(info$filePath),
           obs = NULL))
-      }
       createPlotsOne(info)
+    }
   }
 
   DEEBplots::createShowPlots(paths$eval)
