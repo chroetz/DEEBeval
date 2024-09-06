@@ -210,6 +210,10 @@ collectScoresOfModel <- function(dbPath, model, tblModelMethod = NULL) {
   paths <- DEEBpath::getPaths(dbPath, model)
   scoreTablePattern <- "^task(\\d{2})(.+)_eval\\.csv$" # TODO: move to DEEBpath
   fileNames <- list.files(paths$eval, pattern = scoreTablePattern)
+  if (length(fileNames) == 0) {
+    cat("No score table found with pattern", scoreTablePattern, "in", paths$eval, "\n")
+    return(NULL)
+  }
   if (hasValue(tblModelMethod)) {
     methodNames <- str_extract(fileNames, scoreTablePattern, group = 2)
     methods <- tblModelMethod |> filter(.data$model == .env$model) |> pull(method) |> unique()
