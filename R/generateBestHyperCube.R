@@ -17,14 +17,18 @@ generateBestHyperCube <- function(dbPath, methodTablePath=NULL, autoId=NULL, cub
   bests$methodFileRelPath <- NA_character_
   for (i in seq_len(nrow(bests))) {
     info <- bests[i, ]
-    filePath <- list.files(
+    filePaths <- list.files(
       path = DEEBpath::hyperDir(dbPath),
       pattern = paste0("^", info$methodBase, "\\.json$"),
-      full.names = TRUE)[1]
-    if (is.na(filePath)) {
+      full.names = TRUE)
+    if (length(filePaths) == 0) {
       cat("Did not find base file for", info$methodBase, "\n")
       next
     }
+    if (length(filePaths) >= 2) {
+      warning("Found multiple base files for", info$methodBase, ". Using first.\n", immediate.=TRUE)
+    }
+    filePath <- filePaths[1]
 
     optsProto <- ConfigOpts::readOptsBare(filePath)
     if (!ConfigOpts::hasGenerativeExpands(optsProto)) {
@@ -34,13 +38,13 @@ generateBestHyperCube <- function(dbPath, methodTablePath=NULL, autoId=NULL, cub
     optsBest <- ConfigOpts::readOpts(info$filePath)
     found <- FALSE
     for (iProto in seq_along(optsProto$list)) {
-      proto <- ConfigOpts::asOpts(optsProto$list[[iProto]])
+      proto <- ConfigOpts::asOpts(optsProto$list[[iProto]], .fill=TRUE) # TODO: .fill=TRUE
       if (ConfigOpts::isOfPrototype(optsBest, proto)) {
         found <- TRUE
         break
       }
     }
-    if (!found) stop(filePath, " did not matching prototype for ", optsBest$name)
+    if (!found) stop(filePath, " is not prototype for ", info$filePath, " (", optsBest$name, ")")
     optsProto$list <- list(ConfigOpts::replaceExpandValues(optsProto$list[[iProto]], optsBest))
 
     optsProto$name <- info$methodBase
