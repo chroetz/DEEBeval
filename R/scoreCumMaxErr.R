@@ -13,7 +13,7 @@ scoreCumMaxErrOne <- function(follower, target, opts) {
   n <- nrow(target$state)
   meanState <- colMeans(target$state)
   targetStateDemeaned <- target$state - rep(meanState, each = n)
-  scale <- sqrt(mean(rowSums(targetStateDemeaned)^2))
+  scale <- sqrt(mean(rowSums(targetStateDemeaned^2)))
   targeStateNormed <- targetStateDemeaned / scale
   followerStateNormed <- (follower$state - rep(meanState, each = n)) / scale
   err <- sqrt(rowSums((targeStateNormed - followerStateNormed)^2))
